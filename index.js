@@ -22,7 +22,7 @@ class CumulusMessageAdapterExecutionError extends Error {
  */
 function callCumulusMessageAdapter(command, input) {
   return new Promise((resolve, reject) => {
-    const sled = cp.spawn('python', ['./cumulus-sled.zip', command]);
+    const sled = cp.spawn('python', ['./cumulus-message-adapter.zip', command]);
 
     // Collect STDOUT
     let sledStdout = '';
