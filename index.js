@@ -76,7 +76,7 @@ function loadNestedEvent(cumulusMessage, context) {
 }
 
 /**
- * Query AWS to create a task-specific event
+ * Create a new Cumulus message with the output of this task
  *
  * @param {Object} handlerResponse - the return value of the task function
  * @param {Object} cumulusMessage - a full Cumulus Message
