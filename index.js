@@ -84,14 +84,16 @@ function loadNestedEvent(cumulusMessage, context) {
  * @returns {Promise.<Object>} - a Cumulus Message or a Cumulus Remote Message
  */
 function createNextEvent(handlerResponse, cumulusMessage, messageConfig) {
-  return callCumulusMessageAdapter(
-    'createNextEvent',
-    {
-      event: cumulusMessage,
-      handler_response: handlerResponse,
-      message_config: messageConfig
-    }
-  );
+  const input = {
+    event: cumulusMessage,
+    handler_response: handlerResponse
+  };
+
+  // If input.message_config is undefined, JSON.stringify will drop the key.
+  // If it is instead set to null, the key is retained and the value is null.
+  input.message_config = messageConfig || null;
+
+  return callCumulusMessageAdapter('createNextEvent', input);
 }
 
 /**
