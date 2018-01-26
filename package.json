@@ -1,0 +1,38 @@
+{
+  "name": "@cumulus/cumulus-message-adapter-js",
+  "version": "0.0.1",
+  "description": "Cumulus message adapter",
+  "main": "index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=4.3.0"
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cumulus-nasa/cumulus-message-adapter-js.git"
+  },
+  "keywords": [
+    "Cumulus"
+  ],
+  "author": "Cumulus Team",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/cumulus-nasa/cumulus-message-adapter-js/issues"
+  },
+  "homepage": "https://github.com/cumulus-nasa/cumulus-message-adapter-js#readme",
+  "devDependencies": {
+    "babel-eslint": "^8.2.1",
+    "eslint": "^4.16.0",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-jsdoc": "^3.3.1",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-react": "^7.6.0"
+  }
+}
