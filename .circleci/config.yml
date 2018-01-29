@@ -1,0 +1,17 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:4
+    working_directory: ~/cumulus-message-adapter
+    steps:
+      - checkout
+
+      - run:
+          name: Deploy
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              cd ~/cumulus-message-adapter
+              echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+              npm publish || echo 'npm publishing failed'
+            fi
