@@ -97,6 +97,40 @@ function createNextEvent(handlerResponse, cumulusMessage, messageConfig) {
 }
 
 /**
+ * Invoke the task function and wrap the result as a Promise
+ *
+ * @param {Function} taskFunction - the task function to be invoked
+ * @param {Object} cumulusMessage - a full Cumulus message
+ * @param {Object} context - the Lambda context
+ * @returns {Promise} - the result of invoking the task function
+ */
+function invokePromisedTaskFunction(taskFunction, cumulusMessage, context) {
+  return new Promise((resolve, reject) => {
+    try {
+      resolve(taskFunction(cumulusMessage, context));
+    }
+    catch (err) {
+      reject(err);
+    }
+  });
+}
+
+/**
+ * Call the callback with an error or a Cumulus message
+ *
+ * @param {Error} err - an error to be handled
+ * @param {Object} cumulusMessage - a full Cumulus message
+ * @param {Fuction} callback - the callback to be invoked with the parsed error
+ * @returns {undefined} - undefined
+ */
+function handleError(err, cumulusMessage, callback) {
+  if (err.name && err.name.includes('WorkflowError')) {
+    callback(null, Object.assign({}, cumulusMessage, { payload: null, exception: err.name }));
+  }
+  else callback(err);
+}
+
+/**
  * Build a nested Cumulus event and pass it to a tasks's business function
  *
  * @param {Function} taskFunction - the function containing the business logic of the task
@@ -107,20 +141,33 @@ function createNextEvent(handlerResponse, cumulusMessage, messageConfig) {
  * @returns {Promise} - resolves when the task has completed
  */
 function runCumulusTask(taskFunction, cumulusMessage, context, callback) {
-  const promisedRemoteEvent = loadRemoteEvent(cumulusMessage);
-  const promisedNestedEvent = promisedRemoteEvent.then((event) => loadNestedEvent(event, context));
-  const promisedTaskOutput = promisedNestedEvent
-    .then((nestedEvent) => taskFunction(nestedEvent, context));
+  let promisedNextEvent;
 
-  return Promise.all([promisedTaskOutput, promisedRemoteEvent, promisedNestedEvent])
-    .then((resolvedPromises) =>
-      createNextEvent(resolvedPromises[0], resolvedPromises[1], resolvedPromises[2].messageConfig))
+  if (process.env.CUMULUS_MESSAGE_ADAPTER_DISABLED === 'true') {
+    promisedNextEvent = invokePromisedTaskFunction(
+      taskFunction,
+      cumulusMessage,
+      context
+    );
+  }
+  else {
+    const promisedRemoteEvent = loadRemoteEvent(cumulusMessage);
+    const promisedNestedEvent = promisedRemoteEvent
+      .then((event) => loadNestedEvent(event, context));
+    const promisedTaskOutput = promisedNestedEvent
+      .then((nestedEvent) => taskFunction(nestedEvent, context));
+
+    promisedNextEvent = Promise.all([promisedTaskOutput, promisedRemoteEvent, promisedNestedEvent])
+      .then((resolvedPromises) =>
+        createNextEvent(
+          resolvedPromises[0],
+          resolvedPromises[1],
+          resolvedPromises[2].messageConfig
+        ));
+  }
+
+  return promisedNextEvent
     .then((nextEvent) => callback(null, nextEvent))
-    .catch((err) => {
-      if (err.name && err.name.includes('WorkflowError')) {
-        callback(null, Object.assign({}, cumulusMessage, { payload: null, exception: err.name }));
-      }
-      else callback(err);
-    });
+    .catch((err) => handleError(err, cumulusMessage, callback));
 }
 exports.runCumulusTask = runCumulusTask;
