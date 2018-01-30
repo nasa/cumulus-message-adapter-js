@@ -118,7 +118,7 @@ function invokePromisedTaskFunction(taskFunction, cumulusMessage, context) {
 /**
  * Call the callback with an error or a Cumulus message
  *
- * @param {Erro} err - an error to be handled
+ * @param {Error} err - an error to be handled
  * @param {Object} cumulusMessage - a full Cumulus message
  * @param {Fuction} callback - the callback to be invoked with the parsed error
  * @returns {undefined} - undefined
