@@ -3,6 +3,12 @@
   "version": "0.0.1",
   "description": "Cumulus message adapter",
   "main": "index.js",
+  "scripts": {
+    "test": "cp test/cumulus-message-adapter.zip . && ava; rm cumulus-message-adapter.zip"
+  },
+  "ava": {
+    "files": "test"
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -26,6 +32,7 @@
   },
   "homepage": "https://github.com/cumulus-nasa/cumulus-message-adapter-js#readme",
   "devDependencies": {
+    "ava": "^0.25.0",
     "babel-eslint": "^8.2.1",
     "eslint": "^4.16.0",
     "eslint-config-airbnb": "^16.1.0",
