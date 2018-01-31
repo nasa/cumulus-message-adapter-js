@@ -7,7 +7,7 @@
 Cumulus is a cloud-based data ingest, archive, distribution and management
 prototype for NASA's future Earth science data streams.
 
-Read [Cumulus Documentation](https://cumulus-nasa.github.io/)
+Read the [Cumulus Documentation](https://cumulus-nasa.github.io/)
 
 ## What is the Cumulus Message Adapter?
 
@@ -76,7 +76,7 @@ exports.handler = handler;
 
 ## Why?
 
-This implementation has a few major advantages:
+This approach has a few major advantages:
 
 1. It explicitly prevents tasks from making assumptions about data structures
    like `meta` and `cumulus_meta` that are owned internally and may therefore
