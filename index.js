@@ -22,32 +22,32 @@ class CumulusMessageAdapterExecutionError extends Error {
  */
 function callCumulusMessageAdapter(command, input) {
   return new Promise((resolve, reject) => {
-    const sled = cp.spawn('python', ['./cumulus-message-adapter.zip', command]);
+    const cumulusMessageAdapter = cp.spawn('python', ['./cumulus-message-adapter.zip', command]);
 
     // Collect STDOUT
-    let sledStdout = '';
-    sled.stdout.on('data', (chunk) => {
-      sledStdout += chunk;
+    let cumulusMessageAdapterStdout = '';
+    cumulusMessageAdapter.stdout.on('data', (chunk) => {
+      cumulusMessageAdapterStdout += chunk;
     });
 
     // Collect STDERR
-    let sledStderr = '';
-    sled.stderr.on('data', (chunk) => {
-      sledStderr += chunk;
+    let cumulusMessageAdapterStderr = '';
+    cumulusMessageAdapter.stderr.on('data', (chunk) => {
+      cumulusMessageAdapterStderr += chunk;
     });
 
-    sled.on('close', (code) => {
-      if (code === 0) resolve(JSON.parse(sledStdout));
-      else reject(new CumulusMessageAdapterExecutionError(sledStderr));
+    cumulusMessageAdapter.on('close', (code) => {
+      if (code === 0) resolve(JSON.parse(cumulusMessageAdapterStdout));
+      else reject(new CumulusMessageAdapterExecutionError(cumulusMessageAdapterStderr));
     });
 
     // If STDIN is closed already, something went wrong.  Don't handle it
     // here and expect a non-zero code when the close event fires.
     // If this line is not present, calling sled.stdin.end with a chunk will
     // result in an unhandled "Error: write EPIPE".
-    sled.stdin.on('error', () => {});
+    cumulusMessageAdapter.stdin.on('error', () => {});
 
-    sled.stdin.end(JSON.stringify(input));
+    cumulusMessageAdapter.stdin.end(JSON.stringify(input));
   });
 }
 
