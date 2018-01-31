@@ -7,11 +7,28 @@ jobs:
     steps:
       - checkout
 
+      - restore_cache:
+          keys:
+            - dependencies-{{ checksum "package.json" }}
+
+      - run:
+          name: Run tests
+          command: |
+            npm install
+            cp test/cumulus-message-adapter.zip .
+            ./node_modules/.bin/ava
+            rm cumulus-message-adapter.zip
+
+      - save_cache:
+          paths:
+            - ./node_modules
+          key: dependencies-{{ checksum "package.json" }}
+
       - run:
           name: Deploy
           command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+            # if [ "${CIRCLE_BRANCH}" == "master" ]; then
               cd ~/cumulus-message-adapter
               echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
               npm publish || echo 'npm publishing failed'
-            fi
+            # fi
