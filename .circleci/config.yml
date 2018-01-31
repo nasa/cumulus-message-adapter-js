@@ -8,6 +8,14 @@ jobs:
       - checkout
 
       - run:
+          name: Run tests
+          command: |
+            npm install
+            cp test/cumulus-message-adapter.zip .
+            ./node_modules/.bin/ava
+            rm cumulus-message-adapter.zip
+
+      - run:
           name: Deploy
           command: |
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
