@@ -7,6 +7,10 @@ jobs:
     steps:
       - checkout
 
+      - restore_cache:
+          keys:
+            - dependencies-{{ checksum "package.json" }}
+
       - run:
           name: Run tests
           command: |
@@ -14,6 +18,11 @@ jobs:
             cp test/cumulus-message-adapter.zip .
             ./node_modules/.bin/ava
             rm cumulus-message-adapter.zip
+
+      - save_cache:
+          paths:
+            - ./node_modules
+          key: dependencies-{{ checksum "package.json" }}
 
       - run:
           name: Deploy
