@@ -74,6 +74,11 @@ function handler(event, context, callback) {
 exports.handler = handler;
 ```
 
+## Creating a deployment package
+
+Tasks that use this library are just standard AWS Lambda tasks. Information on
+creating release packages is available [here](https://docs.aws.amazon.com/lambda/latest/dg/deployment-package-v2.html).
+
 ## Why?
 
 This approach has a few major advantages:
