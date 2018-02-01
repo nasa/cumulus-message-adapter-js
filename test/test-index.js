@@ -3,7 +3,7 @@
 const test = require('ava');
 const cumulusMessageAdapter = require('../index');
 
-test('The correct cumulus message is returned', (t) => {
+test.cb('The correct cumulus message is returned', (t) => {
   const businessLogicOutput = 42;
   const businessLogic = () => businessLogicOutput;
 
@@ -20,12 +20,13 @@ test('The correct cumulus message is returned', (t) => {
   function callback(err, data) {
     t.is(err, null);
     t.deepEqual(data, expectedOutput);
+    t.end();
   }
 
   return cumulusMessageAdapter.runCumulusTask(businessLogic, inputEvent, {}, callback);
 });
 
-test('The businessLogic receives the correct arguments', (t) => {
+test.cb('The businessLogic receives the correct arguments', (t) => {
   const inputEvent = { a: 1 };
   const context = { b: 2 };
 
@@ -39,10 +40,10 @@ test('The businessLogic receives the correct arguments', (t) => {
     t.deepEqual(actualContext, context);
   }
 
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, inputEvent, context, () => true);
+  return cumulusMessageAdapter.runCumulusTask(businessLogic, inputEvent, context, t.end);
 });
 
-test('A WorkflowError is returned properly', (t) => {
+test.cb('A WorkflowError is returned properly', (t) => {
   const inputEvent = { a: 1 };
 
   const expectedOutput = {
@@ -60,12 +61,13 @@ test('A WorkflowError is returned properly', (t) => {
   function callback(err, data) {
     t.is(err, null);
     t.deepEqual(data, expectedOutput);
+    t.end();
   }
 
   return cumulusMessageAdapter.runCumulusTask(businessLogic, inputEvent, {}, callback);
 });
 
-test('A non-WorkflowError is raised', (t) => {
+test.cb('A non-WorkflowError is raised', (t) => {
   function businessLogic() {
     throw new Error('oh snap');
   }
@@ -74,6 +76,7 @@ test('A non-WorkflowError is raised', (t) => {
     t.is(err.name, 'Error');
     t.is(err.message, 'oh snap');
     t.is(data, undefined);
+    t.end();
   }
 
   return cumulusMessageAdapter.runCumulusTask(businessLogic, {}, {}, callback);

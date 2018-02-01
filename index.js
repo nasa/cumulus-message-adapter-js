@@ -22,32 +22,32 @@ class CumulusMessageAdapterExecutionError extends Error {
  */
 function callCumulusMessageAdapter(command, input) {
   return new Promise((resolve, reject) => {
-    const sled = cp.spawn('python', ['./cumulus-message-adapter.zip', command]);
+    const cumulusMessageAdapter = cp.spawn('python', ['./cumulus-message-adapter.zip', command]);
 
     // Collect STDOUT
-    let sledStdout = '';
-    sled.stdout.on('data', (chunk) => {
-      sledStdout += chunk;
+    let cumulusMessageAdapterStdout = '';
+    cumulusMessageAdapter.stdout.on('data', (chunk) => {
+      cumulusMessageAdapterStdout += chunk;
     });
 
     // Collect STDERR
-    let sledStderr = '';
-    sled.stderr.on('data', (chunk) => {
-      sledStderr += chunk;
+    let cumulusMessageAdapterStderr = '';
+    cumulusMessageAdapter.stderr.on('data', (chunk) => {
+      cumulusMessageAdapterStderr += chunk;
     });
 
-    sled.on('close', (code) => {
-      if (code === 0) resolve(JSON.parse(sledStdout));
-      else reject(new CumulusMessageAdapterExecutionError(sledStderr));
+    cumulusMessageAdapter.on('close', (code) => {
+      if (code === 0) resolve(JSON.parse(cumulusMessageAdapterStdout));
+      else reject(new CumulusMessageAdapterExecutionError(cumulusMessageAdapterStderr));
     });
 
     // If STDIN is closed already, something went wrong.  Don't handle it
     // here and expect a non-zero code when the close event fires.
     // If this line is not present, calling sled.stdin.end with a chunk will
     // result in an unhandled "Error: write EPIPE".
-    sled.stdin.on('error', () => {});
+    cumulusMessageAdapter.stdin.on('error', () => {});
 
-    sled.stdin.end(JSON.stringify(input));
+    cumulusMessageAdapter.stdin.end(JSON.stringify(input));
   });
 }
 
@@ -116,21 +116,6 @@ function invokePromisedTaskFunction(taskFunction, cumulusMessage, context) {
 }
 
 /**
- * Call the callback with an error or a Cumulus message
- *
- * @param {Error} err - an error to be handled
- * @param {Object} cumulusMessage - a full Cumulus message
- * @param {Fuction} callback - the callback to be invoked with the parsed error
- * @returns {undefined} - undefined
- */
-function handleError(err, cumulusMessage, callback) {
-  if (err.name && err.name.includes('WorkflowError')) {
-    callback(null, Object.assign({}, cumulusMessage, { payload: null, exception: err.name }));
-  }
-  else callback(err);
-}
-
-/**
  * Build a nested Cumulus event and pass it to a tasks's business function
  *
  * @param {Function} taskFunction - the function containing the business logic of the task
@@ -138,7 +123,9 @@ function handleError(err, cumulusMessage, callback) {
  * @param {Object} context - an AWS Lambda context
  * @param {Function} callback - the callback to be called when the taskFunction
  *   has completed.  This should be the callback passed to the Lambda handler.
- * @returns {Promise} - resolves when the task has completed
+ * @returns {undefined} - there is no return value from this function, but
+ *   the callback function will be invoked with either an error or a full
+ *   Cumulus message containing the result of the business logic function.
  */
 function runCumulusTask(taskFunction, cumulusMessage, context, callback) {
   let promisedNextEvent;
@@ -166,8 +153,13 @@ function runCumulusTask(taskFunction, cumulusMessage, context, callback) {
         ));
   }
 
-  return promisedNextEvent
+  promisedNextEvent
     .then((nextEvent) => callback(null, nextEvent))
-    .catch((err) => handleError(err, cumulusMessage, callback));
+    .catch((err) => {
+      if (err.name && err.name.includes('WorkflowError')) {
+        callback(null, Object.assign({}, cumulusMessage, { payload: null, exception: err.name }));
+      }
+      else callback(err);
+    });
 }
 exports.runCumulusTask = runCumulusTask;
