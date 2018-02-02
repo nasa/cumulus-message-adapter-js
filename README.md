@@ -1,6 +1,6 @@
 # @cumulus/cumulus-message-adapter-js
 
-[![CircleCI](https://circleci.com/gh/cumulus-nasa/cumulus/cumulus-message-adapter-js.svg?style=svg)](https://circleci.com/gh/cumulus-nasa/cumulus/cumulus-message-adapter-js)
+[![CircleCI](https://circleci.com/gh/cumulus-nasa/cumulus-message-adapter-js.svg?style=svg)](https://circleci.com/gh/cumulus-nasa/cumulus-message-adapter-js)
 
 ## What is Cumulus?
 
@@ -15,6 +15,12 @@ The Cumulus Message Adapter is a library that adapts incoming messages in the
 Cumulus protocol to a format more easily consumable by Cumulus tasks, invokes
 the tasks, and then adapts their response back to the Cumulus message protocol
 to be sent to the next task.
+
+## Installation
+
+The cumulus-message-adapter-js can be installed via Node Package Manager (NPM) and the package is located [here](https://www.npmjs.com/package/@cumulus/cumulus-message-adapter-js).
+
+Add @cumulus/cumulus-message-adapter-js to your package.json and run ```npm install```.
 
 ## Task definition
 
@@ -78,6 +84,27 @@ exports.handler = handler;
 
 Tasks that use this library are just standard AWS Lambda tasks. Information on
 creating release packages is available [here](https://docs.aws.amazon.com/lambda/latest/dg/deployment-package-v2.html).
+
+## Usage in Cumulus Deployments
+
+During deployment, Cumulus will automatically obtain and inject the [Cumulus Message Adapter](https://github.com/cumulus-nasa/cumulus-message-adapter) zip into the compiled code and create a zip file to be deployed to Lambda.
+
+A task using the message adapter would be configured in lambdas.yml as follows:
+
+```yaml
+NodeTest:
+  handler: index.handler
+  timeout: 300
+  memory: 256
+  source: 'node_modules/@cumulus/task-task/dist/'
+  useMessageAdapter: true
+```
+
+## Development
+
+### Running Tests
+
+To run the tests for this package, run ```npm run test```
 
 ## Why?
 
