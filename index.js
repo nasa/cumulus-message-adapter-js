@@ -55,10 +55,12 @@ function callCumulusMessageAdapter(command, input) {
  * If a Cumulus Remote Message is passed, fetch it and return a full Cumulus Message
  *
  * @param {Object} cumulusMessage - either a full Cumulus Message or a Cumulus Remote Message
+ * @param {String} schemaLocation - location of schema file, can be null
  * @returns {Promise.<Object>} - a full Cumulus Message
  */
-function loadRemoteEvent(cumulusMessage) {
-  return callCumulusMessageAdapter('loadRemoteEvent', { event: cumulusMessage });
+function loadRemoteEvent(cumulusMessage, schemaLocation = null) {
+  if (schemaLocation) return callCumulusMessageAdapter('loadRemoteEvent', { event: cumulusMessage, schema: schemaLocation });
+  else return callCumulusMessageAdapter('loadRemoteEvent', { event: cumulusMessage});
 }
 
 /**
@@ -66,12 +68,14 @@ function loadRemoteEvent(cumulusMessage) {
  *
  * @param {Object} cumulusMessage - a full Cumulus Message
  * @param {Object} context - an AWS Lambda context
+ * @param {String} schemaLocation - location of schema file, can be null
  * @returns {Promise.<Object>} - an Object containing the keys input, config and messageConfig
  */
-function loadNestedEvent(cumulusMessage, context) {
+function loadNestedEvent(cumulusMessage, context, schemaLocation = null) {
   return callCumulusMessageAdapter('loadNestedEvent', {
     event: cumulusMessage,
-    context
+    context,
+    schema: schemaLocation
   });
 }
 
@@ -81,9 +85,10 @@ function loadNestedEvent(cumulusMessage, context) {
  * @param {Object} handlerResponse - the return value of the task function
  * @param {Object} cumulusMessage - a full Cumulus Message
  * @param {Object} messageConfig - the value of the messageConfig key returned by loadNestedEvent
+ * @param {String} schemaLocation - location of schema file, can be null
  * @returns {Promise.<Object>} - a Cumulus Message or a Cumulus Remote Message
  */
-function createNextEvent(handlerResponse, cumulusMessage, messageConfig) {
+function createNextEvent(handlerResponse, cumulusMessage, messageConfig, schemaLocation = null) {
   const input = {
     event: cumulusMessage,
     handler_response: handlerResponse
@@ -92,6 +97,7 @@ function createNextEvent(handlerResponse, cumulusMessage, messageConfig) {
   // If input.message_config is undefined, JSON.stringify will drop the key.
   // If it is instead set to null, the key is retained and the value is null.
   input.message_config = messageConfig || null;
+  input.schema = schemaLocation;
 
   return callCumulusMessageAdapter('createNextEvent', input);
 }
