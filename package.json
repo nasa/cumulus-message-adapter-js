@@ -1,10 +1,10 @@
 {
   "name": "@cumulus/cumulus-message-adapter-js",
-  "version": "0.0.1-beta.2",
+  "version": "0.0.1-beta.3",
   "description": "Cumulus message adapter",
   "main": "index.js",
   "scripts": {
-    "test": "cp test/cumulus-message-adapter.zip . && ava; rm cumulus-message-adapter.zip"
+    "test": "rm -rf cumulus-message-adapter && cp -R test/cumulus-message-adapter . && ava; rm -rf cumulus-message-adapter"
   },
   "ava": {
     "files": "test"
