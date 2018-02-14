@@ -135,6 +135,8 @@ function invokePromisedTaskFunction(taskFunction, cumulusMessage, context) {
  */
 function runCumulusTask(taskFunction, cumulusMessage, context, callback) {
   let promisedNextEvent;
+  process.env.EXECUTIONS = cumulusMessage.execution_names;
+  process.env.SENDER = context.function_name;
 
   if (process.env.CUMULUS_MESSAGE_ADAPTER_DISABLED === 'true') {
     promisedNextEvent = invokePromisedTaskFunction(
@@ -144,7 +146,7 @@ function runCumulusTask(taskFunction, cumulusMessage, context, callback) {
     );
   }
   else {
-    const promisedRemoteEvent = loadRemoteEvent(cumulusMessage);
+    const promisedRemoteEvent = loadRemoteEvent(cumulusMessage, schemaLocation);
     const promisedNestedEvent = promisedRemoteEvent
       .then((event) => loadNestedEvent(event, context));
     const promisedTaskOutput = promisedNestedEvent
