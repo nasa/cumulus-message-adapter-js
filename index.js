@@ -55,12 +55,11 @@ function callCumulusMessageAdapter(command, input) {
  * If a Cumulus Remote Message is passed, fetch it and return a full Cumulus Message
  *
  * @param {Object} cumulusMessage - either a full Cumulus Message or a Cumulus Remote Message
- * @param {String} schemaLocation - location of schema file, can be null
+ * @param {String} schemaLocations - contains location of schema files, can be null
  * @returns {Promise.<Object>} - a full Cumulus Message
  */
-function loadRemoteEvent(cumulusMessage, schemaLocation = null) {
-  if (schemaLocation) return callCumulusMessageAdapter('loadRemoteEvent', { event: cumulusMessage, schema: schemaLocation });
-  else return callCumulusMessageAdapter('loadRemoteEvent', { event: cumulusMessage});
+function loadRemoteEvent(cumulusMessage, schemaLocations = null) {
+  return callCumulusMessageAdapter('loadRemoteEvent', { event: cumulusMessage, schemas: schemaLocations });
 }
 
 /**
@@ -68,14 +67,14 @@ function loadRemoteEvent(cumulusMessage, schemaLocation = null) {
  *
  * @param {Object} cumulusMessage - a full Cumulus Message
  * @param {Object} context - an AWS Lambda context
- * @param {String} schemaLocation - location of schema file, can be null
+ * @param {String} schemaLocations - contains location of schema files, can be null
  * @returns {Promise.<Object>} - an Object containing the keys input, config and messageConfig
  */
-function loadNestedEvent(cumulusMessage, context, schemaLocation = null) {
+function loadNestedEvent(cumulusMessage, context, schemaLocations = null) {
   return callCumulusMessageAdapter('loadNestedEvent', {
     event: cumulusMessage,
-    context,
-    schema: schemaLocation
+    schemas: schemaLocations,
+    context
   });
 }
 
@@ -85,10 +84,10 @@ function loadNestedEvent(cumulusMessage, context, schemaLocation = null) {
  * @param {Object} handlerResponse - the return value of the task function
  * @param {Object} cumulusMessage - a full Cumulus Message
  * @param {Object} messageConfig - the value of the messageConfig key returned by loadNestedEvent
- * @param {String} schemaLocation - location of schema file, can be null
+ * @param {String} schemaLocations - contains location of schema files, can be null
  * @returns {Promise.<Object>} - a Cumulus Message or a Cumulus Remote Message
  */
-function createNextEvent(handlerResponse, cumulusMessage, messageConfig, schemaLocation = null) {
+function createNextEvent(handlerResponse, cumulusMessage, messageConfig, schemaLocations = null) {
   const input = {
     event: cumulusMessage,
     handler_response: handlerResponse
@@ -97,7 +96,7 @@ function createNextEvent(handlerResponse, cumulusMessage, messageConfig, schemaL
   // If input.message_config is undefined, JSON.stringify will drop the key.
   // If it is instead set to null, the key is retained and the value is null.
   input.message_config = messageConfig || null;
-  input.schema = schemaLocation;
+  input.schemas = schemaLocations;
 
   return callCumulusMessageAdapter('createNextEvent', input);
 }
@@ -133,7 +132,7 @@ function invokePromisedTaskFunction(taskFunction, cumulusMessage, context) {
  *   the callback function will be invoked with either an error or a full
  *   Cumulus message containing the result of the business logic function.
  */
-function runCumulusTask(taskFunction, cumulusMessage, context, callback) {
+function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas = null) {
   let promisedNextEvent;
   process.env.EXECUTIONS = cumulusMessage.execution_names;
   process.env.SENDER = context.function_name;
@@ -146,9 +145,9 @@ function runCumulusTask(taskFunction, cumulusMessage, context, callback) {
     );
   }
   else {
-    const promisedRemoteEvent = loadRemoteEvent(cumulusMessage, schemaLocation);
+    const promisedRemoteEvent = loadRemoteEvent(cumulusMessage, schemas);
     const promisedNestedEvent = promisedRemoteEvent
-      .then((event) => loadNestedEvent(event, context));
+      .then((event) => loadNestedEvent(event, context, schemas));
     const promisedTaskOutput = promisedNestedEvent
       .then((nestedEvent) => taskFunction(nestedEvent, context));
 
@@ -157,7 +156,8 @@ function runCumulusTask(taskFunction, cumulusMessage, context, callback) {
         createNextEvent(
           resolvedPromises[0],
           resolvedPromises[1],
-          resolvedPromises[2].messageConfig
+          resolvedPromises[2].messageConfig,
+          schemas
         ));
   }
 
