@@ -62,7 +62,7 @@ The Cumulus Message adapter for Javascript provides one method:
     Message
   * `context` - the Lambda context
   * `callback` - the callback passed by Lambda
-  * `schemas` - the locations of the task schemas
+  * `schemas` - JSON object with the locations of the task schemas
 
 If the schema locations are not specified, the message adapter will look for schemas in a schemas directory at the root level for the files: input.json, output.json, or config.json. If the schema is not specified or missing, schema validation will not be peformed.
 
