@@ -132,10 +132,11 @@ function invokePromisedTaskFunction(taskFunction, cumulusMessage, context) {
  *   the callback function will be invoked with either an error or a full
  *   Cumulus message containing the result of the business logic function.
  */
-function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas = null) {
+function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas) {
   let promisedNextEvent;
   process.env.EXECUTIONS = cumulusMessage.execution_names;
   process.env.SENDER = context.function_name;
+  if (typeof schemas == 'undefined') schemas = null;
 
   if (process.env.CUMULUS_MESSAGE_ADAPTER_DISABLED === 'true') {
     promisedNextEvent = invokePromisedTaskFunction(
