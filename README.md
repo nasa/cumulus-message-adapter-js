@@ -90,7 +90,8 @@ creating release packages is available [here](https://docs.aws.amazon.com/lambda
 
 ## Usage in Cumulus Deployments
 
-During deployment, Cumulus will automatically obtain and inject the [Cumulus Message Adapter](https://github.com/cumulus-nasa/cumulus-message-adapter) into the compiled code and create a zip file to be deployed to Lambda.
+During deployment, Cumulus will automatically obtain and inject the [Cumulus Message Adapter](https://github.com/cumulus-nasa/cumulus-message-adapter)
+into the compiled code and create a zip file to be deployed to Lambda.
 
 A task using the message adapter would be configured in lambdas.yml as follows:
 

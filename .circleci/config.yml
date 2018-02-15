@@ -15,9 +15,10 @@ jobs:
           name: Run tests
           command: |
             npm install
-            cp test/cumulus-message-adapter.zip .
+            rm -rf cumulus-message-adapter
+            cp -R test/cumulus-message-adapter .
             ./node_modules/.bin/ava
-            rm cumulus-message-adapter.zip
+            rm -rf cumulus-message-adapter
 
       - save_cache:
           paths:
