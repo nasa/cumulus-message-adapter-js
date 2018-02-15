@@ -54,7 +54,7 @@ must be communicated to those using the task.
 ## Cumulus Message Adapter interface
 
 The Cumulus Message adapter for Javascript provides one method:
-`runCumulusTask`. It takes four parameters:
+`runCumulusTask`. It takes five parameters:
 
   * `taskFunction` - the function containing your business logic (as described
     above)
@@ -62,6 +62,9 @@ The Cumulus Message adapter for Javascript provides one method:
     Message
   * `context` - the Lambda context
   * `callback` - the callback passed by Lambda
+  * `schemas` - the locations of the task schemas
+
+If the schema locations are not specified, the message adapter will look for schemas in a schemas directory at the root level for the files: input.json, output.json, or config.json. If the schema is not specified or missing, schema validation will not be peformed.
 
 ## Example Cumulus task
 
@@ -75,7 +78,7 @@ function myBusinessLogic(nestedEvent, context) {
 
 // The handler function should rarely, if ever, contain more than this line
 function handler(event, context, callback) {
-  cumulusMessageAdapter.runCumulusTask(myBusinessLogic, event, callback);
+  cumulusMessageAdapter.runCumulusTask(myBusinessLogic, event, context, callback, schemas);
 }
 exports.handler = handler;
 ```

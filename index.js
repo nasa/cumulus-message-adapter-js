@@ -58,7 +58,7 @@ function callCumulusMessageAdapter(command, input) {
  * @param {String} schemaLocations - contains location of schema files, can be null
  * @returns {Promise.<Object>} - a full Cumulus Message
  */
-function loadRemoteEvent(cumulusMessage, schemaLocations = null) {
+function loadRemoteEvent(cumulusMessage, schemaLocations) {
   return callCumulusMessageAdapter('loadRemoteEvent', { event: cumulusMessage, schemas: schemaLocations });
 }
 
@@ -70,7 +70,7 @@ function loadRemoteEvent(cumulusMessage, schemaLocations = null) {
  * @param {String} schemaLocations - contains location of schema files, can be null
  * @returns {Promise.<Object>} - an Object containing the keys input, config and messageConfig
  */
-function loadNestedEvent(cumulusMessage, context, schemaLocations = null) {
+function loadNestedEvent(cumulusMessage, context, schemaLocations) {
   return callCumulusMessageAdapter('loadNestedEvent', {
     event: cumulusMessage,
     schemas: schemaLocations,
@@ -87,7 +87,7 @@ function loadNestedEvent(cumulusMessage, context, schemaLocations = null) {
  * @param {String} schemaLocations - contains location of schema files, can be null
  * @returns {Promise.<Object>} - a Cumulus Message or a Cumulus Remote Message
  */
-function createNextEvent(handlerResponse, cumulusMessage, messageConfig, schemaLocations = null) {
+function createNextEvent(handlerResponse, cumulusMessage, messageConfig, schemaLocations) {
   const input = {
     event: cumulusMessage,
     handler_response: handlerResponse
