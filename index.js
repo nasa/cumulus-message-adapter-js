@@ -55,10 +55,11 @@ function callCumulusMessageAdapter(command, input) {
  * If a Cumulus Remote Message is passed, fetch it and return a full Cumulus Message
  *
  * @param {Object} cumulusMessage - either a full Cumulus Message or a Cumulus Remote Message
+ * @param {String} schemaLocations - contains location of schema files, can be null
  * @returns {Promise.<Object>} - a full Cumulus Message
  */
-function loadRemoteEvent(cumulusMessage) {
-  return callCumulusMessageAdapter('loadRemoteEvent', { event: cumulusMessage });
+function loadRemoteEvent(cumulusMessage, schemaLocations) {
+  return callCumulusMessageAdapter('loadRemoteEvent', { event: cumulusMessage, schemas: schemaLocations });
 }
 
 /**
@@ -66,11 +67,13 @@ function loadRemoteEvent(cumulusMessage) {
  *
  * @param {Object} cumulusMessage - a full Cumulus Message
  * @param {Object} context - an AWS Lambda context
+ * @param {String} schemaLocations - contains location of schema files, can be null
  * @returns {Promise.<Object>} - an Object containing the keys input, config and messageConfig
  */
-function loadNestedEvent(cumulusMessage, context) {
+function loadNestedEvent(cumulusMessage, context, schemaLocations) {
   return callCumulusMessageAdapter('loadNestedEvent', {
     event: cumulusMessage,
+    schemas: schemaLocations,
     context
   });
 }
@@ -81,9 +84,10 @@ function loadNestedEvent(cumulusMessage, context) {
  * @param {Object} handlerResponse - the return value of the task function
  * @param {Object} cumulusMessage - a full Cumulus Message
  * @param {Object} messageConfig - the value of the messageConfig key returned by loadNestedEvent
+ * @param {String} schemaLocations - contains location of schema files, can be null
  * @returns {Promise.<Object>} - a Cumulus Message or a Cumulus Remote Message
  */
-function createNextEvent(handlerResponse, cumulusMessage, messageConfig) {
+function createNextEvent(handlerResponse, cumulusMessage, messageConfig, schemaLocations) {
   const input = {
     event: cumulusMessage,
     handler_response: handlerResponse
@@ -92,6 +96,7 @@ function createNextEvent(handlerResponse, cumulusMessage, messageConfig) {
   // If input.message_config is undefined, JSON.stringify will drop the key.
   // If it is instead set to null, the key is retained and the value is null.
   input.message_config = messageConfig || null;
+  input.schemas = schemaLocations;
 
   return callCumulusMessageAdapter('createNextEvent', input);
 }
@@ -127,8 +132,11 @@ function invokePromisedTaskFunction(taskFunction, cumulusMessage, context) {
  *   the callback function will be invoked with either an error or a full
  *   Cumulus message containing the result of the business logic function.
  */
-function runCumulusTask(taskFunction, cumulusMessage, context, callback) {
+function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas) {
   let promisedNextEvent;
+  if (cumulusMessage.config) process.env.EXECUTIONS = cumulusMessage.config.cumulus_meta.execution_name;
+  process.env.SENDER = context.function_name;
+  if (typeof schemas == 'undefined') schemas = null;
 
   if (process.env.CUMULUS_MESSAGE_ADAPTER_DISABLED === 'true') {
     promisedNextEvent = invokePromisedTaskFunction(
@@ -138,9 +146,9 @@ function runCumulusTask(taskFunction, cumulusMessage, context, callback) {
     );
   }
   else {
-    const promisedRemoteEvent = loadRemoteEvent(cumulusMessage);
+    const promisedRemoteEvent = loadRemoteEvent(cumulusMessage, schemas);
     const promisedNestedEvent = promisedRemoteEvent
-      .then((event) => loadNestedEvent(event, context));
+      .then((event) => loadNestedEvent(event, context, schemas));
     const promisedTaskOutput = promisedNestedEvent
       .then((nestedEvent) => taskFunction(nestedEvent, context));
 
@@ -149,7 +157,8 @@ function runCumulusTask(taskFunction, cumulusMessage, context, callback) {
         createNextEvent(
           resolvedPromises[0],
           resolvedPromises[1],
-          resolvedPromises[2].messageConfig
+          resolvedPromises[2].messageConfig,
+          schemas
         ));
   }
 

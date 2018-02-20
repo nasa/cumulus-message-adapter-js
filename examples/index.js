@@ -32,6 +32,7 @@ function myBusinessLogic(nestedEvent, context) {
  *   logic function.
  */
 function handler(event, context, cb) {
-  cumulusMessageAdapter.runCumulusTask(myBusinessLogic, event, cb);
+  const schemas = { input: 'input.json' };
+  cumulusMessageAdapter.runCumulusTask(myBusinessLogic, event, context, cb, schemas);
 }
 exports.handler = handler;
