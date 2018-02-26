@@ -28,6 +28,31 @@ test.cb('The correct cumulus message is returned', (t) => {
   return cumulusMessageAdapter.runCumulusTask(businessLogic, inputEvent, {}, callback);
 });
 
+test.cb('Correct cumulus message is returned when task returns a promise that resolves', (t) => {
+  const businessLogicOutput = 42;
+  const businessLogic = () => Promise.resolve(businessLogicOutput);
+
+  const inputEvent = { a: 1 };
+
+  const expectedOutput = {
+    event: {
+      event: inputEvent,
+      schemas: null
+    },
+    handler_response: businessLogicOutput,
+    message_config: null,
+    schemas: null
+  };
+
+  function callback(err, data) {
+    t.is(err, null);
+    t.deepEqual(data, expectedOutput);
+    t.end();
+  }
+
+  return cumulusMessageAdapter.runCumulusTask(businessLogic, inputEvent, {}, callback);
+});
+
 test.cb('The businessLogic receives the correct arguments', (t) => {
   const inputEvent = { a: 1 };
   const context = { b: 2 };
