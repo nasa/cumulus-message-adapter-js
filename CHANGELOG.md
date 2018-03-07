@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+- Add the `CUMULUS_MESSAGE_ADAPTER_DIR` environment variable to set the path where cumulus-message-adapter is located
+
 ## [v1.0.0] - 2018-03-07
 
 Initial release
