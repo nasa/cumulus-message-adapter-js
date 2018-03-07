@@ -1,6 +1,6 @@
 {
   "name": "@cumulus/cumulus-message-adapter-js",
-  "version": "0.0.1-beta.3",
+  "version": "1.0.0",
   "description": "Cumulus message adapter",
   "main": "index.js",
   "scripts": {
