@@ -1,5 +1,3 @@
-/* eslint-disable require-jsdoc */
-
 const path = require('path');
 
 const test = require('ava').serial;

@@ -1,5 +1,3 @@
-/* eslint-disable require-jsdoc */
-
 const test = require('ava');
 const cumulusMessageAdapter = require('../index');
 
