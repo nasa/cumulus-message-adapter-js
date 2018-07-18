@@ -1,6 +1,8 @@
 # @cumulus/cumulus-message-adapter-js
 
-[![CircleCI](https://circleci.com/gh/cumulus-nasa/cumulus-message-adapter-js.svg?style=svg)](https://circleci.com/gh/cumulus-nasa/cumulus-message-adapter-js)
+[![CircleCI](https://circleci.com/gh/nasa/cumulus-message-adapter-js.svg?style=svg)](https://circleci.com/gh/nasa/cumulus-message-adapter-js)
+[![npm version](https://badge.fury.io/js/%40cumulus%2Fcumulus-message-adapter-js.svg)](https://badge.fury.io/js/%40cumulus%2Fcumulus-message-adapter-js)
+
 
 ## What is Cumulus?
 
