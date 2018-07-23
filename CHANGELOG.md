@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [v1.0.2] - 2018-07-23
+### Fixed
+
+- Evironment variables for task name, task version, and execution name.
+
 ## [v1.0.1] - 2018-03-08
 ### Added
 
@@ -14,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 Initial release
 
-[Unreleased]: https://github.com/cumulus-nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/cumulus-nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.2...HEAD
+[v1.0.2]: https://github.com/cumulus-nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.1...v1.0.2
 [v1.0.1]: https://github.com/cumulus-nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/cumulus-nasa/cumulus-message-adapter-js/tree/v1.0.0
