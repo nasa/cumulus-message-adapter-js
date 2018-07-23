@@ -56,7 +56,7 @@ function callCumulusMessageAdapter(command, input) {
  * If a Cumulus Remote Message is passed, fetch it and return a full Cumulus Message
  *
  * @param {Object} cumulusMessage - either a full Cumulus Message or a Cumulus Remote Message
- * @param {String} schemaLocations - contains location of schema files, can be null
+ * @param {string} schemaLocations - contains location of schema files, can be null
  * @returns {Promise.<Object>} - a full Cumulus Message
  */
 function loadRemoteEvent(cumulusMessage, schemaLocations) {
@@ -68,7 +68,7 @@ function loadRemoteEvent(cumulusMessage, schemaLocations) {
  *
  * @param {Object} cumulusMessage - a full Cumulus Message
  * @param {Object} context - an AWS Lambda context
- * @param {String} schemaLocations - contains location of schema files, can be null
+ * @param {string} schemaLocations - contains location of schema files, can be null
  * @returns {Promise.<Object>} - an Object containing the keys input, config and messageConfig
  */
 function loadNestedEvent(cumulusMessage, context, schemaLocations) {
@@ -85,7 +85,7 @@ function loadNestedEvent(cumulusMessage, context, schemaLocations) {
  * @param {Object} handlerResponse - the return value of the task function
  * @param {Object} cumulusMessage - a full Cumulus Message
  * @param {Object} messageConfig - the value of the messageConfig key returned by loadNestedEvent
- * @param {String} schemaLocations - contains location of schema files, can be null
+ * @param {string} schemaLocations - contains location of schema files, can be null
  * @returns {Promise.<Object>} - a Cumulus Message or a Cumulus Remote Message
  */
 function createNextEvent(handlerResponse, cumulusMessage, messageConfig, schemaLocations) {
@@ -129,15 +129,20 @@ function invokePromisedTaskFunction(taskFunction, cumulusMessage, context) {
  * @param {Object} context - an AWS Lambda context
  * @param {Function} callback - the callback to be called when the taskFunction
  *   has completed.  This should be the callback passed to the Lambda handler.
+ * @param {string} schemas - Location of schema files, can be null.
  * @returns {undefined} - there is no return value from this function, but
  *   the callback function will be invoked with either an error or a full
  *   Cumulus message containing the result of the business logic function.
  */
 function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas) {
   let promisedNextEvent;
-  if (cumulusMessage.config) process.env.EXECUTIONS = cumulusMessage.config.cumulus_meta.execution_name;
-  process.env.SENDER = context.function_name;
-  if (typeof schemas == 'undefined') schemas = null;
+  if (cumulusMessage.input) {
+    process.env.EXECUTIONS = cumulusMessage.input.cumulus_meta.execution_name;
+  }
+  process.env.SENDER = context.functionName;
+  process.env.TASKVERSION = context.functionVersion;
+
+  if (typeof schemas === 'undefined') schemas = null;
 
   if (process.env.CUMULUS_MESSAGE_ADAPTER_DISABLED === 'true') {
     promisedNextEvent = invokePromisedTaskFunction(
