@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ## [v1.0.2] - 2018-07-23
-### Added
+### Fixed
 
 - Evironment variables for task name, task version, and execution name.
 
