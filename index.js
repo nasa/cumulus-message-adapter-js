@@ -136,8 +136,8 @@ function invokePromisedTaskFunction(taskFunction, cumulusMessage, context) {
  */
 function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas) {
   let promisedNextEvent;
-  if (cumulusMessage.input) {
-    process.env.EXECUTIONS = cumulusMessage.input.cumulus_meta.execution_name;
+  if (cumulusMessage.cumulus_meta) {
+    process.env.EXECUTIONS = cumulusMessage.cumulus_meta.execution_name;
   }
   process.env.SENDER = context.functionName;
   process.env.TASKVERSION = context.functionVersion;
