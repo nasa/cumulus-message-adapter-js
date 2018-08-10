@@ -152,6 +152,10 @@ function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas
     );
   }
   else {
+    if (cumulusMessage.meta && cumulusMessage.meta.workflow_tasks) {
+      cumulusMessage.meta.workflow_tasks[context.functionName] = { version: context.functionVersion, arn: context.invokedFunctionArn };
+    }
+
     const promisedRemoteEvent = loadRemoteEvent(cumulusMessage, schemas);
     const promisedNestedEvent = promisedRemoteEvent
       .then((event) => loadNestedEvent(event, context, schemas));
