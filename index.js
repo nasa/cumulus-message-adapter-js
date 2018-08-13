@@ -53,30 +53,21 @@ function callCumulusMessageAdapter(command, input) {
 }
 
 /**
- * If a Cumulus Remote Message is passed, fetch it and return a full Cumulus Message
+ * If a Cumulus Remote Message is passed, fetch it and return a full Cumulus Message with updated task metadata.
  *
  * @param {Object} cumulusMessage - either a full Cumulus Message or a Cumulus Remote Message
  * @param {string} schemaLocations - contains location of schema files, can be null
  * @returns {Promise.<Object>} - a full Cumulus Message
  */
-function loadRemoteEvent(cumulusMessage, schemaLocations) {
-  return callCumulusMessageAdapter('loadRemoteEvent', { event: cumulusMessage, schemas: schemaLocations });
-}
-
-/**
- * 
- * @param {Object} cumulusMessage - a full Cumulus Message
- * @param {Object} context - an AWS Lambda context
- * @returns {Promise.<Object>} - a full Cumulus Message
- */
-function updateRemoteEvent(cumulusMessage, context) {
-  return callCumulusMessageAdapter('updateRemoteEvent', {
+function loadAndUpdateRemoteEvent(cumulusMessage, context, schemaLocations) {
+  return callCumulusMessageAdapter('loadAndUpdateRemoteEvent', {
     event: cumulusMessage,
     context: {
       function_name: context.functionName,
       function_version: context.functionVersion,
       invoked_function_arn: context.invokedFunctionArn
-    }
+    },
+    schemas: schemaLocations
   });
 }
 
@@ -169,8 +160,7 @@ function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas
     );
   }
   else {
-    const promisedRemoteEvent = loadRemoteEvent(cumulusMessage, schemas)
-      .then((remoteEvent) => updateRemoteEvent(remoteEvent, context));
+    const promisedRemoteEvent = loadAndUpdateRemoteEvent(cumulusMessage, context, schemas);
     const promisedNestedEvent = promisedRemoteEvent
       .then((event) => loadNestedEvent(event, context, schemas));
     const promisedTaskOutput = promisedNestedEvent
