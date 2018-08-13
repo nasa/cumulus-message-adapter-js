@@ -64,6 +64,23 @@ function loadRemoteEvent(cumulusMessage, schemaLocations) {
 }
 
 /**
+ * 
+ * @param {Object} cumulusMessage - a full Cumulus Message
+ * @param {Object} context - an AWS Lambda context
+ * @returns {Promise.<Object>} - a full Cumulus Message
+ */
+function updateRemoteEvent(cumulusMessage, context) {
+  return callCumulusMessageAdapter('updateRemoteEvent', {
+    event: cumulusMessage,
+    context: {
+      function_name: context.functionName,
+      function_version: context.functionVersion,
+      invoked_function_arn: context.invokedFunctionArn
+    }
+  });
+}
+
+/**
  * Query AWS to create a task-specific event
  *
  * @param {Object} cumulusMessage - a full Cumulus Message
@@ -152,11 +169,8 @@ function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas
     );
   }
   else {
-    if (cumulusMessage.meta && cumulusMessage.meta.workflow_tasks) {
-      cumulusMessage.meta.workflow_tasks[context.functionName] = { version: context.functionVersion, arn: context.invokedFunctionArn };
-    }
-
-    const promisedRemoteEvent = loadRemoteEvent(cumulusMessage, schemas);
+    const promisedRemoteEvent = loadRemoteEvent(cumulusMessage, schemas)
+      .then((remoteEvent) => updateRemoteEvent(remoteEvent, context));
     const promisedNestedEvent = promisedRemoteEvent
       .then((event) => loadNestedEvent(event, context, schemas));
     const promisedTaskOutput = promisedNestedEvent
