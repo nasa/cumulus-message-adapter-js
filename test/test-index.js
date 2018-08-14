@@ -10,6 +10,7 @@ test.cb('The correct cumulus message is returned', (t) => {
   const expectedOutput = {
     event: {
       event: inputEvent,
+      context: {},
       schemas: null
     },
     handler_response: businessLogicOutput,
@@ -35,6 +36,7 @@ test.cb('Correct cumulus message is returned when task returns a promise that re
   const expectedOutput = {
     event: {
       event: inputEvent,
+      context: {},
       schemas: null
     },
     handler_response: businessLogicOutput,
@@ -56,7 +58,7 @@ test.cb('The businessLogic receives the correct arguments', (t) => {
   const context = { b: 2 };
 
   const expectedNestedEvent = {
-    event: { event: { a: 1 }, schemas: null },
+    event: { event: { a: 1 }, context: {}, schemas: null },
     schemas: null,
     context: { b: 2 }
   };

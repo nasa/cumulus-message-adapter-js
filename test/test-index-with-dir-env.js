@@ -15,6 +15,7 @@ test.cb('CUMULUS_MESSAGE_ADAPTER_DIR sets the location of the message adapter', 
   const expectedOutput = {
     event: {
       event: inputEvent,
+      context: {},
       schemas: null
     },
     handler_response: businessLogicOutput,
