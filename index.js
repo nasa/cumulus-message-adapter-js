@@ -56,17 +56,14 @@ function callCumulusMessageAdapter(command, input) {
  * If a Cumulus Remote Message is passed, fetch it and return a full Cumulus Message with updated task metadata.
  *
  * @param {Object} cumulusMessage - either a full Cumulus Message or a Cumulus Remote Message
+ * @param {Object} context - an AWS Lambda context
  * @param {string} schemaLocations - contains location of schema files, can be null
  * @returns {Promise.<Object>} - a full Cumulus Message
  */
 function loadAndUpdateRemoteEvent(cumulusMessage, context, schemaLocations) {
   return callCumulusMessageAdapter('loadAndUpdateRemoteEvent', {
     event: cumulusMessage,
-    context: {
-      function_name: context.functionName,
-      function_version: context.functionVersion,
-      invoked_function_arn: context.invokedFunctionArn
-    },
+    context,
     schemas: schemaLocations
   });
 }
