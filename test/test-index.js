@@ -58,9 +58,9 @@ test.cb('The businessLogic receives the correct arguments', (t) => {
   const context = { b: 2 };
 
   const expectedNestedEvent = {
-    event: { event: { a: 1 }, context: {}, schemas: null },
+    event: { event: { a: 1 }, context, schemas: null },
     schemas: null,
-    context: { b: 2 }
+    context
   };
 
   function businessLogic(actualNestedEvent, actualContext) {

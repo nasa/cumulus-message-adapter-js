@@ -6,7 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-- Use updated message adapter to store task metadata.
+## [v1.0.4] - 2018-08-16
+### Added
+
+- Store task context metadata in `meta.workflow_tasks`, if it exists.
 
 ## [v1.0.3] - 2018-07-26
 
