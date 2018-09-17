@@ -1,22 +1,43 @@
+/* eslint-disable no-param-reassign */
 const test = require('ava');
+
+const fs = require('fs-extra');
+const path = require('path');
+const clonedeep = require('lodash.clonedeep');
+
 const cumulusMessageAdapter = require('../index');
+const { downloadCMA } = require('./adapter');
+
+// store test context data
+const testContext = {};
+
+test.before(async() => {
+  const srcdir = path.join(__dirname);
+  const destdir = path.join(__dirname, '../');
+  // download and unzip the message adapter
+  const { src, dest } = await downloadCMA(srcdir, destdir);
+  testContext.src = src;
+  testContext.dest = dest;
+
+  const inputJson = path.join(__dirname, 'fixtures/messages/basic.input.json');
+  testContext.inputEvent = JSON.parse(fs.readFileSync(inputJson));
+  const outputJson = path.join(__dirname, 'fixtures/messages/basic.output.json');
+  testContext.outputEvent = JSON.parse(fs.readFileSync(outputJson));
+});
+
+test.after.always('final cleanup', () =>
+  Promise.all([
+    fs.remove(testContext.src),
+    fs.remove(testContext.dest)
+  ]));
 
 test.cb('The correct cumulus message is returned', (t) => {
   const businessLogicOutput = 42;
   const businessLogic = () => businessLogicOutput;
 
-  const inputEvent = { a: 1 };
-
-  const expectedOutput = {
-    event: {
-      event: inputEvent,
-      context: {},
-      schemas: null
-    },
-    handler_response: businessLogicOutput,
-    message_config: null,
-    schemas: null
-  };
+  // assign task output from the lambda
+  const expectedOutput = clonedeep(testContext.outputEvent);
+  expectedOutput.payload = businessLogicOutput;
 
   function callback(err, data) {
     t.is(err, null);
@@ -24,25 +45,15 @@ test.cb('The correct cumulus message is returned', (t) => {
     t.end();
   }
 
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, inputEvent, {}, callback);
+  return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.inputEvent, {}, callback);
 });
 
 test.cb('Correct cumulus message is returned when task returns a promise that resolves', (t) => {
   const businessLogicOutput = 42;
   const businessLogic = () => Promise.resolve(businessLogicOutput);
 
-  const inputEvent = { a: 1 };
-
-  const expectedOutput = {
-    event: {
-      event: inputEvent,
-      context: {},
-      schemas: null
-    },
-    handler_response: businessLogicOutput,
-    message_config: null,
-    schemas: null
-  };
+  const expectedOutput = clonedeep(testContext.outputEvent);
+  expectedOutput.payload = businessLogicOutput;
 
   function callback(err, data) {
     t.is(err, null);
@@ -50,35 +61,33 @@ test.cb('Correct cumulus message is returned when task returns a promise that re
     t.end();
   }
 
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, inputEvent, {}, callback);
+  return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.inputEvent, {}, callback);
 });
 
+
 test.cb('The businessLogic receives the correct arguments', (t) => {
-  const inputEvent = { a: 1 };
   const context = { b: 2 };
 
   const expectedNestedEvent = {
-    event: { event: { a: 1 }, context, schemas: null },
-    schemas: null,
-    context
+    input: testContext.inputEvent.payload,
+    config: testContext.inputEvent.workflow_config[testContext.inputEvent.cumulus_meta.task]
   };
 
   function businessLogic(actualNestedEvent, actualContext) {
     t.deepEqual(actualNestedEvent, expectedNestedEvent);
     t.deepEqual(actualContext, context);
+    return 42;
   }
 
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, inputEvent, context, t.end);
+  return cumulusMessageAdapter
+    .runCumulusTask(businessLogic, testContext.inputEvent, context, t.end);
 });
 
-test.cb('A WorkflowError is returned properly', (t) => {
-  const inputEvent = { a: 1 };
 
-  const expectedOutput = {
-    a: 1,
-    payload: null,
-    exception: 'SomeWorkflowError'
-  };
+test.cb('A WorkflowError is returned properly', (t) => {
+  const expectedOutput = clonedeep(testContext.outputEvent);
+  expectedOutput.payload = null;
+  expectedOutput.exception = 'SomeWorkflowError';
 
   function businessLogic() {
     const error = new Error('Oh snap');
@@ -92,7 +101,7 @@ test.cb('A WorkflowError is returned properly', (t) => {
     t.end();
   }
 
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, inputEvent, {}, callback);
+  return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.inputEvent, {}, callback);
 });
 
 test.cb('A non-WorkflowError is raised', (t) => {
@@ -107,7 +116,7 @@ test.cb('A non-WorkflowError is raised', (t) => {
     t.end();
   }
 
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, {}, {}, callback);
+  return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.inputEvent, {}, callback);
 });
 
 test.cb('A promise returns an error', (t) => {
@@ -122,17 +131,13 @@ test.cb('A promise returns an error', (t) => {
     t.end();
   }
 
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, {}, {}, callback);
+  return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.inputEvent, {}, callback);
 });
 
 test.cb('A Promise WorkflowError is returned properly', (t) => {
-  const inputEvent = { a: 1 };
-
-  const expectedOutput = {
-    a: 1,
-    payload: null,
-    exception: 'SomeWorkflowError'
-  };
+  const expectedOutput = clonedeep(testContext.outputEvent);
+  expectedOutput.payload = null;
+  expectedOutput.exception = 'SomeWorkflowError';
 
   function businessLogic() {
     const error = new Error('Oh no');
@@ -146,5 +151,5 @@ test.cb('A Promise WorkflowError is returned properly', (t) => {
     t.end();
   }
 
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, inputEvent, {}, callback);
+  return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.inputEvent, {}, callback);
 });
