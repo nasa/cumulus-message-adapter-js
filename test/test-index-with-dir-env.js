@@ -3,7 +3,6 @@ const clonedeep = require('lodash.clonedeep');
 const fs = require('fs-extra');
 const path = require('path');
 
-
 const cumulusMessageAdapter = require('../index');
 const { downloadCMA } = require('./adapter');
 
@@ -11,13 +10,11 @@ const { downloadCMA } = require('./adapter');
 const testContext = {};
 
 test.before(async() => {
-  const srcdir = __dirname;
-  const destdir = path.join(__dirname, 'alternate-dir');
+  testContext.dir = path.join(__dirname, 'alternate-dir');
+  fs.mkdirpSync(testContext.dir);
 
   // download and unzip the message adapter
-  const { src, dest } = await downloadCMA(srcdir, destdir);
-  testContext.src = src;
-  testContext.dest = dest;
+  const { src, dest } = await downloadCMA(testContext.dir, testContext.dir);
 
   const inputJson = path.join(__dirname, 'fixtures/messages/basic.input.json');
   testContext.inputEvent = JSON.parse(fs.readFileSync(inputJson));
@@ -26,11 +23,8 @@ test.before(async() => {
 });
 
 test.after.always('final cleanup', () =>
-  Promise.all([
-    fs.remove(testContext.src),
-    fs.remove(testContext.dest)
-  ]));
-
+  fs.remove(testContext.dir)
+);
 
 test.cb('CUMULUS_MESSAGE_ADAPTER_DIR sets the location of the message adapter', (t) => {
   const dir = path.join(__dirname, 'alternate-dir', 'cumulus-message-adapter');
