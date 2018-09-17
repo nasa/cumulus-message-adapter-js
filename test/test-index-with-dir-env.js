@@ -11,9 +11,11 @@ const { downloadCMA } = require('./adapter');
 const testContext = {};
 
 test.before(async() => {
-  const dir = path.join(__dirname, 'alternate-dir');
+  const srcdir = __dirname;
+  const destdir = path.join(__dirname, 'alternate-dir');
+
   // download and unzip the message adapter
-  const { src, dest } = await downloadCMA(dir, dir);
+  const { src, dest } = await downloadCMA(srcdir, destdir);
   testContext.src = src;
   testContext.dest = dest;
 
