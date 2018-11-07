@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v1.0.6] - 2018-11-07
+
+### Added
+- Add environment variable `REINGEST_GRANULE` to indicate if the granule is manually reingested [CUMULUS-906]
+
 ## [v1.0.5] - 2018-10-10
 
 ### Added
@@ -26,7 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [v1.0.2] - 2018-07-23
 ### Fixed
 
-- Evironment variables for task name, task version, and execution name.
+- Environment variables for task name, task version, and execution name.
 
 ## [v1.0.1] - 2018-03-08
 ### Added
@@ -38,12 +43,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Initial release
 
 [Unreleased]:
-https://github.com/cumulus-nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.5...HEAD
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.6...HEAD
+[v1.0.6]:
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.5...v1.0.6
 [v1.0.5]:
-https://github.com/cumulus-nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.4...v1.0.5
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.4...v1.0.5
 [v1.0.4]:
-https://github.com/cumulus-nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.3...v1.0.4
-[v1.0.3]: https://github.com/cumulus-nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.2...v1.0.3
-[v1.0.2]: https://github.com/cumulus-nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.1...v1.0.2
-[v1.0.1]: https://github.com/cumulus-nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.0...v1.0.1
-[v1.0.0]: https://github.com/cumulus-nasa/cumulus-message-adapter-js/tree/v1.0.0
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.3...v1.0.4
+[v1.0.3]: https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.2...v1.0.3
+[v1.0.2]: https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.1...v1.0.2
+[v1.0.1]: https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.0...v1.0.1
+[v1.0.0]: https://github.com/nasa/cumulus-message-adapter-js/tree/v1.0.0

@@ -9,7 +9,7 @@
 Cumulus is a cloud-based data ingest, archive, distribution and management
 prototype for NASA's future Earth science data streams.
 
-Read the [Cumulus Documentation](https://cumulus-nasa.github.io/)
+Read the [Cumulus Documentation](https://nasa.github.io/cumulus)
 
 ## What is the Cumulus Message Adapter?
 
@@ -92,7 +92,7 @@ creating release packages is available [here](https://docs.aws.amazon.com/lambda
 
 ## Usage in Cumulus Deployments
 
-During deployment, Cumulus will automatically obtain and inject the [Cumulus Message Adapter](https://github.com/cumulus-nasa/cumulus-message-adapter)
+During deployment, Cumulus will automatically obtain and inject the [Cumulus Message Adapter](https://github.com/nasa/cumulus-message-adapter)
 into the compiled code and create a zip file to be deployed to Lambda.
 
 A task using the message adapter would be configured in lambdas.yml as follows:
@@ -113,7 +113,7 @@ There are two environment variables that can be used with this library. Both are
 - `CUMULUS_MESSAGE_ADAPTER_DISABLED=true`
   - Defaults to false. This env var disables Cumulus Message Adapter. This can be used to turn off the message adapter for tasks that adapt the message on their own, or for testing.
 - `CUMULUS_MESSAGE_ADAPTER_DIR`
-  - The default directory for Cumulus Message Adapter is the root directory of the lambda function. There are rare cases (see [cumulus-ecs-task](https://github.com/cumulus-nasa/cumulus-ecs-task) for an example) where the adapter directory will be in a different location. This env var is unlikely to be useful for tasks, only for libraries that are working with Cumulus tasks at a higher level.
+  - The default directory for Cumulus Message Adapter is the root directory of the lambda function. There are rare cases (see [cumulus-ecs-task](https://github.com/nasa/cumulus-ecs-task) for an example) where the adapter directory will be in a different location. This env var is unlikely to be useful for tasks, only for libraries that are working with Cumulus tasks at a higher level.
 
 ## Development
 
