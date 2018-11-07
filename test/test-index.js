@@ -161,7 +161,7 @@ test.cb('The task receives the correct environment variables', (t) => {
   inputEvent.meta.reingestGranule = true;
 
   function businessLogic(actualNestedEvent, actualContext) {
-    console.log(process.env.REINGEST_GRANULE);
+    t.deepEqual(actualContext, context);
     t.is(process.env.REINGEST_GRANULE, 'true');
     return 42;
   }
