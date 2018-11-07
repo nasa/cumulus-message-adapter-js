@@ -1,5 +1,5 @@
 /* eslint-disable no-param-reassign */
-const test = require('ava');
+const test = require('ava').serial;
 
 const fs = require('fs-extra');
 const path = require('path');
@@ -152,4 +152,20 @@ test.cb('A Promise WorkflowError is returned properly', (t) => {
   }
 
   return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.inputEvent, {}, callback);
+});
+
+test.cb('The task receives the correct environment variables', (t) => {
+  const context = { b: 2 };
+
+  const inputEvent = clonedeep(testContext.inputEvent);
+  inputEvent.meta.reingestGranule = true;
+
+  function businessLogic(actualNestedEvent, actualContext) {
+    console.log(process.env.REINGEST_GRANULE);
+    t.is(process.env.REINGEST_GRANULE, 'true');
+    return 42;
+  }
+
+  return cumulusMessageAdapter
+    .runCumulusTask(businessLogic, inputEvent, context, t.end);
 });
