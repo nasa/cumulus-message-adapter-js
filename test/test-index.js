@@ -154,15 +154,18 @@ test.cb('A Promise WorkflowError is returned properly', (t) => {
   return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.inputEvent, {}, callback);
 });
 
-test.cb('The task receives the correct environment variables', (t) => {
+test.cb('The task receives the cumulus_config property', (t) => {
   const context = { b: 2 };
 
   const inputEvent = clonedeep(testContext.inputEvent);
-  inputEvent.meta.reingestGranule = true;
+  inputEvent.cumulus_meta.cumulus_context = { anykey: 'anyvalue' };
 
   function businessLogic(actualNestedEvent, actualContext) {
     t.deepEqual(actualContext, context);
-    t.is(process.env.REINGEST_GRANULE, 'true');
+    t.deepEqual(
+      actualNestedEvent.cumulus_config.cumulus_context,
+      inputEvent.cumulus_meta.cumulus_context
+    );
     return 42;
   }
 
