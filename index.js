@@ -159,11 +159,7 @@ function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas
   else {
     const promisedRemoteEvent = loadAndUpdateRemoteEvent(cumulusMessage, context, schemas);
     const promisedNestedEvent = promisedRemoteEvent
-      .then((event) => {
-        // indicate if the granule is manually reingested
-        process.env.REINGEST_GRANULE = (event.meta.reingestGranule === true);
-        return loadNestedEvent(event, context, schemas);
-      });
+      .then((event) => loadNestedEvent(event, context, schemas));
 
     const promisedTaskOutput = promisedNestedEvent
       .then((nestedEvent) => taskFunction(nestedEvent, context));

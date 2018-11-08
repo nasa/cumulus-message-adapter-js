@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v1.0.7] - 2018-11-08
+
+### Removed
+- Remove environment variable `REINGEST_GRANULE` which was used to indicate if the granule is manually reingested [CUMULUS-906]
+
 ## [v1.0.6] - 2018-11-07
 
 ### Added
@@ -43,7 +48,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Initial release
 
 [Unreleased]:
-https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.6...HEAD
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.7...HEAD
+[v1.0.7]:
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.6...v1.0.7
 [v1.0.6]:
 https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.5...v1.0.6
 [v1.0.5]:
