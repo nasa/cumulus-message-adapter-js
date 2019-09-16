@@ -1,20 +1,20 @@
 {
-    "workflow_config": {
-      "Example": {
-        "bar": "baz"
-      }
-    },
-    "cumulus_meta": {
-      "task": "Example",
-      "message_source": "local",
-      "id": "id-1234",
-      "execution_name": "execution_value"
-    },
-    "meta": {
-      "foo": "bar"
-    },
-    "payload": {
-      "anykey": "anyvalue"
+  "workflow_config": {
+    "Example": {
+      "bar": "baz"
     }
+  },
+  "cumulus_meta": {
+    "task": "Example",
+    "message_source": "local",
+    "id": "id-1234",
+    "execution_name": "execution_value"
+  },
+  "meta": {
+    "foo": "bar"
+  },
+  "payload": {
+    "anykey": "anyvalue"
   }
+}
   
