@@ -143,7 +143,10 @@ function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas
   let promisedNextEvent;
   if (cumulusMessage.cumulus_meta) {
     process.env.EXECUTIONS = cumulusMessage.cumulus_meta.execution_name;
+  } else if (cumulusMessage.cma) {
+    process.env.EXECUTIONS = cumulusMessage.cma.event.cumulus_meta.execution_name;
   }
+  
   process.env.SENDER = context.functionName;
   process.env.TASKVERSION = context.functionVersion;
 

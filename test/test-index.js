@@ -6,7 +6,7 @@ const path = require('path');
 const clonedeep = require('lodash.clonedeep');
 
 const cumulusMessageAdapter = require('../index');
-const { downloadCMA } = require('./adapter');
+const { downloadCMA, extractZipFile } = require('./adapter');
 
 // store test context data
 const testContext = {};
@@ -15,38 +15,60 @@ test.before(async() => {
   const srcdir = __dirname;
   const destdir = path.join(__dirname, '../');
   // download and unzip the message adapter
-  const { src, dest } = await downloadCMA(srcdir, destdir);
-  testContext.src = src;
-  testContext.dest = dest;
+  if (process.env.LOCAL_CMA_ZIP_FILE) {
+    const dest = path.join(destdir, 'cumulus-message-adapter');
+    await extractZipFile(process.env.LOCAL_CMA_ZIP_FILE, dest)
+  }
+  else {
+    const { src, dest } = await downloadCMA(srcdir, destdir);
+    testContext.src = src;
+    testContext.dest = dest;
+  }
 
   const inputJson = path.join(__dirname, 'fixtures/messages/basic.input.json');
   testContext.inputEvent = JSON.parse(fs.readFileSync(inputJson));
+  const executionInputJson = path.join(__dirname, 'fixtures/messages/execution.input.json');
+  testContext.executionInput = JSON.parse(fs.readFileSync(executionInputJson));
+  const paramInputJson = path.join(__dirname, 'fixtures/messages/parameterized.input.json');
+  testContext.paramInputEvent = JSON.parse(fs.readFileSync(paramInputJson));
   const outputJson = path.join(__dirname, 'fixtures/messages/basic.output.json');
   testContext.outputEvent = JSON.parse(fs.readFileSync(outputJson));
 });
 
-test.after.always('final cleanup', () =>
-  Promise.all([
+test.after.always('final cleanup', () => {
+  if(process.env.LOCAL_CMA_ZIP_FILE) {
+    return Promise.resolve();
+  }
+  return Promise.all([
     fs.remove(testContext.src),
     fs.remove(testContext.dest)
-  ]));
+  ]);
+});
 
-test.cb('The correct cumulus message is returned', (t) => {
-  const businessLogicOutput = 42;
-  const businessLogic = () => businessLogicOutput;
-
-  // assign task output from the lambda
-  const expectedOutput = clonedeep(testContext.outputEvent);
-  expectedOutput.payload = businessLogicOutput;
-
+ 
+test.cb('Execution is set when parameterized configuration is set', (t) => {
+  const businessLogic = () => Promise.resolve(process.env.EXECUTIONS);
+  const expectedOutput = 'execution_value';
   function callback(err, data) {
     t.is(err, null);
-    t.deepEqual(data, expectedOutput);
+    t.deepEqual(data.payload, expectedOutput);
     t.end();
   }
-
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.inputEvent, {}, callback);
+  return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.paramInputEvent, {}, callback);
 });
+
+test.cb('Execution is set when cumulus_meta has an execution value', (t) => {
+  const businessLogic = () => Promise.resolve(process.env.EXECUTIONS);
+  const expectedOutput = 'execution_value';
+  function callback(err, data) {
+    t.is(err, null);
+    t.deepEqual(data.payload, expectedOutput);
+    t.end();
+  }
+  return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.paramInputEvent, {}, callback);
+});
+
+
 
 test.cb('Correct cumulus message is returned when task returns a promise that resolves', (t) => {
   const businessLogicOutput = 42;
