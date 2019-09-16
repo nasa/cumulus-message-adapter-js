@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v1.0.8] - 2019-09-16
 ### Added
 - Updated CMA client to handle parameterized configuration, set execution env variable regardless of message format
 	
@@ -49,8 +51,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 Initial release
 
+
 [Unreleased]:
-https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.7...HEAD
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.8...HEAD
+[v1.0.8]:
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.7...1.0.8
 [v1.0.7]:
 https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.6...v1.0.7
 [v1.0.6]:
