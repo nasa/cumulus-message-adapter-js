@@ -92,19 +92,7 @@ creating release packages is available [here](https://docs.aws.amazon.com/lambda
 
 ## Usage in Cumulus Deployments
 
-During deployment, Cumulus will automatically obtain and inject the [Cumulus Message Adapter](https://github.com/nasa/cumulus-message-adapter)
-into the compiled code and create a zip file to be deployed to Lambda.
-
-A task using the message adapter would be configured in lambdas.yml as follows:
-
-```yaml
-NodeTest:
-  handler: index.handler
-  timeout: 300
-  memory: 256
-  source: 'node_modules/@cumulus/task-task/dist/'
-  useMessageAdapter: true
-```
+For documenation on how to utilize this package in a Cumulus Deployment, view the [Cumulus Workflow Documenation](https://nasa.github.io/cumulus/docs/workflows/input_output).
 
 ## Environment variables
 
