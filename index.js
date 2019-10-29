@@ -53,7 +53,8 @@ function callCumulusMessageAdapter(command, input) {
 }
 
 /**
- * If a Cumulus Remote Message is passed, fetch it and return a full Cumulus Message with updated task metadata.
+ * If a Cumulus Remote Message is passed, fetch it and return a full Cumulus
+ * Message with updated task metadata.
  *
  * @param {Object} cumulusMessage - either a full Cumulus Message or a Cumulus Remote Message
  * @param {Object} context - an AWS Lambda context
@@ -134,23 +135,22 @@ function invokePromisedTaskFunction(taskFunction, cumulusMessage, context) {
  * @param {Object} context - an AWS Lambda context
  * @param {Function} callback - the callback to be called when the taskFunction
  *   has completed.  This should be the callback passed to the Lambda handler.
- * @param {string} schemas - Location of schema files, can be null.
+ * @param {string} schemas - Location of schema files, defaults to null.
  * @returns {undefined} - there is no return value from this function, but
  *   the callback function will be invoked with either an error or a full
  *   Cumulus message containing the result of the business logic function.
  */
-function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas) {
+function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas = null) {
   let promisedNextEvent;
   if (cumulusMessage.cumulus_meta) {
     process.env.EXECUTIONS = cumulusMessage.cumulus_meta.execution_name;
-  } else if (cumulusMessage.cma) {
+  }
+  else if (cumulusMessage.cma) {
     process.env.EXECUTIONS = cumulusMessage.cma.event.cumulus_meta.execution_name;
   }
-  
+
   process.env.SENDER = context.functionName;
   process.env.TASKVERSION = context.functionVersion;
-
-  if (typeof schemas === 'undefined') schemas = null;
 
   if (process.env.CUMULUS_MESSAGE_ADAPTER_DISABLED === 'true') {
     promisedNextEvent = invokePromisedTaskFunction(
@@ -161,27 +161,27 @@ function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas
   }
   else {
     const promisedRemoteEvent = loadAndUpdateRemoteEvent(cumulusMessage, context, schemas);
-    const promisedNestedEvent = promisedRemoteEvent
-      .then((event) => loadNestedEvent(event, context, schemas));
+    const promisedNestedEvent = promisedRemoteEvent.then(
+      (event) => loadNestedEvent(event, context, schemas)
+    );
 
     const promisedTaskOutput = promisedNestedEvent
       .then((nestedEvent) => taskFunction(nestedEvent, context));
 
     promisedNextEvent = Promise.all([promisedTaskOutput, promisedRemoteEvent, promisedNestedEvent])
-      .then((resolvedPromises) =>
-        createNextEvent(
-          resolvedPromises[0],
-          resolvedPromises[1],
-          resolvedPromises[2].messageConfig,
-          schemas
-        ));
+      .then((resolvedPromises) => createNextEvent(
+        resolvedPromises[0],
+        resolvedPromises[1],
+        resolvedPromises[2].messageConfig,
+        schemas
+      ));
   }
 
   promisedNextEvent
     .then((nextEvent) => callback(null, nextEvent))
     .catch((err) => {
       if (err.name && err.name.includes('WorkflowError')) {
-        callback(null, Object.assign({}, cumulusMessage, { payload: null, exception: err.name }));
+        callback(null, { ...cumulusMessage, payload: null, exception: err.name });
       }
       else callback(err);
     });

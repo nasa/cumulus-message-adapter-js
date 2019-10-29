@@ -17,7 +17,7 @@ test.before(async() => {
   // download and unzip the message adapter
   if (process.env.LOCAL_CMA_ZIP_FILE) {
     const dest = path.join(destdir, 'cumulus-message-adapter');
-    await extractZipFile(process.env.LOCAL_CMA_ZIP_FILE, dest)
+    await extractZipFile(process.env.LOCAL_CMA_ZIP_FILE, dest);
   }
   else {
     const { src, dest } = await downloadCMA(srcdir, destdir);
@@ -36,7 +36,7 @@ test.before(async() => {
 });
 
 test.after.always('final cleanup', () => {
-  if(process.env.LOCAL_CMA_ZIP_FILE) {
+  if (process.env.LOCAL_CMA_ZIP_FILE) {
     return Promise.resolve();
   }
   return Promise.all([
@@ -45,7 +45,7 @@ test.after.always('final cleanup', () => {
   ]);
 });
 
- 
+
 test.cb('Execution is set when parameterized configuration is set', (t) => {
   const businessLogic = () => Promise.resolve(process.env.EXECUTIONS);
   const expectedOutput = 'execution_value';
@@ -54,7 +54,9 @@ test.cb('Execution is set when parameterized configuration is set', (t) => {
     t.deepEqual(data.payload, expectedOutput);
     t.end();
   }
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.paramInputEvent, {}, callback);
+  return cumulusMessageAdapter.runCumulusTask(
+    businessLogic, testContext.paramInputEvent, {}, callback
+  );
 });
 
 test.cb('Execution is set when cumulus_meta has an execution value', (t) => {
@@ -65,9 +67,10 @@ test.cb('Execution is set when cumulus_meta has an execution value', (t) => {
     t.deepEqual(data.payload, expectedOutput);
     t.end();
   }
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.paramInputEvent, {}, callback);
+  return cumulusMessageAdapter.runCumulusTask(
+    businessLogic, testContext.paramInputEvent, {}, callback
+  );
 });
-
 
 
 test.cb('Correct cumulus message is returned when task returns a promise that resolves', (t) => {

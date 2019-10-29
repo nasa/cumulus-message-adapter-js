@@ -14,7 +14,7 @@ test.before(async() => {
   fs.mkdirpSync(testContext.dir);
 
   // download and unzip the message adapter
-  const { src, dest } = await downloadCMA(testContext.dir, testContext.dir);
+  await downloadCMA(testContext.dir, testContext.dir);
 
   const inputJson = path.join(__dirname, 'fixtures/messages/basic.input.json');
   testContext.inputEvent = JSON.parse(fs.readFileSync(inputJson));
@@ -22,9 +22,7 @@ test.before(async() => {
   testContext.outputEvent = JSON.parse(fs.readFileSync(outputJson));
 });
 
-test.after.always('final cleanup', () =>
-  fs.remove(testContext.dir)
-);
+test.after.always('final cleanup', () => fs.remove(testContext.dir));
 
 test.cb('CUMULUS_MESSAGE_ADAPTER_DIR sets the location of the message adapter', (t) => {
   const dir = path.join(__dirname, 'alternate-dir', 'cumulus-message-adapter');
