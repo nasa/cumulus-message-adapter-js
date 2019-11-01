@@ -1,6 +1,7 @@
 'use strict';
 
 const cp = require('child_process');
+const get = require('lodash.get');
 
 /**
  * An error to be thrown when invokation of the cumulus-message-adapter fails
@@ -128,6 +129,83 @@ function invokePromisedTaskFunction(taskFunction, cumulusMessage, context) {
 }
 
 /**
+ * Get granules from execution message.
+ *   Uses the order of precedence as defined by the cumulus/common/message
+ *   description.
+ *
+ * @param {Object} message - An execution message
+ * @returns {Array<Object>} - An array of granule objects
+ */
+function getMessageGranules(message) {
+  return get(message, 'payload.granules')
+    || get(message, 'meta.input_granules')
+    || get(message, 'cma.event.payload.granules')
+    || get(message, 'cma.event.meta.input_granules');
+}
+
+/**
+ * Get the stackname pulled from the meta of the event.
+ *
+ * @param {Object} message - A cumulus event message.
+ * @returns {string} - The cumulus stack name.
+ */
+function getStackName(message) {
+  return get(message, 'meta.stack')
+    || get(message, 'cma.event.meta.stack');
+}
+
+/**
+ * Gets parent arn from execution message.
+ *
+ * @param {Object} message - An execution message.
+ * @returns {string} - the parent execution.
+ */
+function getParentArn(message) {
+  return get(message, 'cumulus_meta.parentExecutionArn')
+    || get(message, 'cma.event.cumulus_meta.parentExecutionArn');
+}
+
+/**
+ * Get current execution name from Cumulus message.
+ *
+ * @param {Object} message - Cumulus message.
+ * @returns {string} current execution name.
+ */
+function getExecutions(message) {
+  return get(message, 'cumulus_meta.execution_name')
+    || get(message, 'cma.event.cumulus_meta.execution_name');
+}
+
+
+/**
+ * Conditionally set environment variable if target value is not undefined.
+ *
+ * @param {any} VARNAME - environment variable
+ * @param {any} value - value to set variable to if not undefined
+ * @returns {undefined}
+ */
+function safeSetEnv(VARNAME, value) {
+  if (value !== undefined) process.env[VARNAME] = value;
+}
+
+/**
+ * Set environment variables to be used in logging based on the Cumulus event
+ * message and context that runCumulusTask was invoked.
+ *
+ * @param {Object} cumulusMessage - cumulus event message
+ * @param {Object} context - lambda context object.
+ * @returns {undefined} - no return values
+ */
+function setCumulusEnvironment(cumulusMessage, context) {
+  safeSetEnv('EXECUTIONS', getExecutions(cumulusMessage));
+  safeSetEnv('SENDER', context.functionName);
+  safeSetEnv('TASKVERSION', context.functionVersion);
+  safeSetEnv('STACKNAME', getStackName(cumulusMessage));
+  safeSetEnv('GRANULES', JSON.stringify(getMessageGranules(cumulusMessage)));
+  safeSetEnv('PARENTARN', getParentArn(cumulusMessage));
+}
+
+/**
  * Build a nested Cumulus event and pass it to a tasks's business function
  *
  * @param {Function} taskFunction - the function containing the business logic of the task
@@ -142,16 +220,7 @@ function invokePromisedTaskFunction(taskFunction, cumulusMessage, context) {
  */
 function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas = null) {
   let promisedNextEvent;
-  if (cumulusMessage.cumulus_meta) {
-    process.env.EXECUTIONS = cumulusMessage.cumulus_meta.execution_name;
-  }
-  else if (cumulusMessage.cma) {
-    process.env.EXECUTIONS = cumulusMessage.cma.event.cumulus_meta.execution_name;
-  }
-
-  process.env.SENDER = context.functionName;
-  process.env.TASKVERSION = context.functionVersion;
-
+  setCumulusEnvironment(cumulusMessage, context);
   if (process.env.CUMULUS_MESSAGE_ADAPTER_DISABLED === 'true') {
     promisedNextEvent = invokePromisedTaskFunction(
       taskFunction,
@@ -161,9 +230,10 @@ function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas
   }
   else {
     const promisedRemoteEvent = loadAndUpdateRemoteEvent(cumulusMessage, context, schemas);
-    const promisedNestedEvent = promisedRemoteEvent.then(
-      (event) => loadNestedEvent(event, context, schemas)
-    );
+    const promisedNestedEvent = promisedRemoteEvent.then((event) => {
+      safeSetEnv('GRANULES', JSON.stringify(getMessageGranules(cumulusMessage)));
+      return loadNestedEvent(event, context, schemas);
+    });
 
     const promisedTaskOutput = promisedNestedEvent
       .then((nestedEvent) => taskFunction(nestedEvent, context));
