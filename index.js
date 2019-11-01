@@ -178,10 +178,10 @@ function getExecutions(message) {
 
 
 /**
- * Conditionally set environment variable if target value is not undefined.
+ * Conditionally set environment variable when targeted value is not undefined.
  *
- * @param {any} VARNAME - environment variable
- * @param {any} value - value to set variable to if not undefined
+ * @param {string} VARNAME - environment variable name
+ * @param {string} value - value to set variable to if not undefined
  * @returns {undefined}
  */
 function safeSetEnv(VARNAME, value) {
