@@ -4,9 +4,21 @@ const test = require('ava').serial;
 const fs = require('fs-extra');
 const path = require('path');
 const clonedeep = require('lodash.clonedeep');
+const rewire = require('rewire');
 
 const cumulusMessageAdapter = require('../index');
 const { downloadCMA, extractZipFile } = require('./adapter');
+
+const cmaRewire = rewire('../index');
+const getMessageGranules = cmaRewire.__get__(
+  'getMessageGranules'
+);
+const getStackName = cmaRewire.__get__(
+  'getStackName'
+);
+const getParentArn = cmaRewire.__get__(
+  'getParentArn'
+);
 
 // store test context data
 const testContext = {};
@@ -31,8 +43,19 @@ test.before(async() => {
   testContext.executionInput = JSON.parse(fs.readFileSync(executionInputJson));
   const paramInputJson = path.join(__dirname, 'fixtures/messages/parameterized.input.json');
   testContext.paramInputEvent = JSON.parse(fs.readFileSync(paramInputJson));
+  const granuleInputJson = path.join(__dirname, 'fixtures/messages/execution.granule.input.json');
+  testContext.granuleInputJson = JSON.parse(fs.readFileSync(granuleInputJson));
+  const inputGranuleInputJson = path.join(__dirname,
+    'fixtures/messages/execution.granule.input.json');
+  testContext.inputGranuleInputJson = JSON.parse(fs.readFileSync(inputGranuleInputJson));
   const outputJson = path.join(__dirname, 'fixtures/messages/basic.output.json');
   testContext.outputEvent = JSON.parse(fs.readFileSync(outputJson));
+  const paramGranuleInputJson = path.join(__dirname,
+    'fixtures/messages/parameterized.granule.input.json');
+  testContext.paramGranuleInputJson = JSON.parse(fs.readFileSync(paramGranuleInputJson));
+  const paramInputGranuleInputJson = path.join(__dirname,
+    'fixtures/messages/parameterized.input_granule.input.json');
+  testContext.paramInputGranuleInputJson = JSON.parse(fs.readFileSync(paramInputGranuleInputJson));
 });
 
 test.after.always('final cleanup', () => {
@@ -197,3 +220,73 @@ test.cb('The task receives the cumulus_config property', (t) => {
   return cumulusMessageAdapter
     .runCumulusTask(businessLogic, inputEvent, context, t.end);
 });
+
+test('GetMessageGranules returns empty array if no granules are found', (t) => {
+  const messageGranules = getMessageGranules(testContext.inputEvent);
+
+  t.deepEqual(messageGranules, []);
+});
+
+test('GetMessageGranules returns granules if they are in the payload', (t) => {
+  const messageGranules = getMessageGranules(testContext.granuleInputJson);
+
+  t.deepEqual(messageGranules, [
+    'MOD09GQ.A2016358.h13v04.006.2016360104606',
+    'MOD09GQ.A2016358.h13v04.007.2017'
+  ]);
+});
+
+test('GetMessageGranules returns granules if they are in the meta.input_granules', (t) => {
+  const messageGranules = getMessageGranules(testContext.inputGranuleInputJson);
+
+  t.deepEqual(messageGranules, [
+    'MOD09GQ.A2016358.h13v04.006.2016360104606',
+    'MOD09GQ.A2016358.h13v04.007.2017'
+  ]);
+});
+
+test('GetMessageGranules returns CMA granules if they are in the CMA event payload', (t) => {
+  const messageGranules = getMessageGranules(testContext.paramGranuleInputJson);
+
+  t.deepEqual(messageGranules, [
+    'MOD09GQ.A2016358.h13v04.006.2016360104606',
+    'MOD09GQ.A2016358.h13v04.007.2017'
+  ]);
+});
+
+test('GetMessageGranules returns granules if they are in the CMA event meta.input_granules',
+  (t) => {
+    const messageGranules = getMessageGranules(testContext.paramInputGranuleInputJson);
+
+    t.deepEqual(messageGranules, [
+      'MOD09GQ.A2016358.h13v04.006.2016360104606',
+      'MOD09GQ.A2016358.h13v04.007.2017'
+    ]);
+  });
+
+test('GetStackName returns a stack name if the stack is in the meta', (t) => {
+  const stack = getStackName(testContext.inputEvent);
+
+  t.is(stack, 'cumulus-stack');
+});
+
+test('GetStackName returns a stack name if the stack is in the CMA event meta', (t) => {
+  const stack = getStackName(testContext.paramInputEvent);
+
+  t.is(stack, 'cumulus-stack');
+});
+
+test('GetParentArn returns a parent arn if the parentArn is in the cumulus_meta', (t) => {
+  const arn = getParentArn(testContext.inputEvent);
+
+  t.is(arn,
+    'arn:aws:states:us-east-1:12345:execution:DiscoverGranules:8768aebb');
+});
+
+test('GetParentArn returns a parent arn if the parentArn is in the CMA event cumulus_meta', (t) => {
+  const arn = getParentArn(testContext.paramInputEvent);
+
+  t.is(arn,
+    'arn:aws:states:us-east-1:12345:execution:DiscoverGranules:8768aebb');
+});
+

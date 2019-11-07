@@ -134,13 +134,19 @@ function invokePromisedTaskFunction(taskFunction, cumulusMessage, context) {
  *   description.
  *
  * @param {Object} message - An execution message
- * @returns {Array<Object>} - An array of granule objects
+ * @returns {Array<Object>} - An array of granule ids
  */
 function getMessageGranules(message) {
-  return get(message, 'payload.granules')
+  const granules = get(message, 'payload.granules')
     || get(message, 'meta.input_granules')
     || get(message, 'cma.event.payload.granules')
     || get(message, 'cma.event.meta.input_granules');
+
+  if (granules) {
+    return granules.map((granule) => granule.granuleId);
+  }
+
+  return [];
 }
 
 /**
@@ -182,7 +188,7 @@ function getExecutions(message) {
  *
  * @param {string} VARNAME - environment variable name
  * @param {string} value - value to set variable to if not undefined
- * @returns {undefined}
+ * @returns {undefined} - none
  */
 function safeSetEnv(VARNAME, value) {
   if (value !== undefined) process.env[VARNAME] = value;
