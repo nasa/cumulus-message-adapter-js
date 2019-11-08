@@ -237,7 +237,8 @@ function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas
   else {
     const promisedRemoteEvent = loadAndUpdateRemoteEvent(cumulusMessage, context, schemas);
     const promisedNestedEvent = promisedRemoteEvent.then((event) => {
-      safeSetEnv('GRANULES', JSON.stringify(getMessageGranules(cumulusMessage)));
+      // Reset the environment with what we can grab from the event from S3
+      setCumulusEnvironment(event, context);
       return loadNestedEvent(event, context, schemas);
     });
 
