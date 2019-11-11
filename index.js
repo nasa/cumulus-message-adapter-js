@@ -3,6 +3,8 @@
 const cp = require('child_process');
 const get = require('lodash.get');
 
+const GRANULE_LOG_LIMIT = 500;
+
 /**
  * An error to be thrown when invokation of the cumulus-message-adapter fails
  */
@@ -134,16 +136,19 @@ function invokePromisedTaskFunction(taskFunction, cumulusMessage, context) {
  *   description.
  *
  * @param {Object} message - An execution message
+ * @param {integer} granuleLimit - number of granules to limit the log to
+ * including, to avoid environment variable truncation
  * @returns {Array<Object>} - An array of granule ids
  */
-function getMessageGranules(message) {
+function getMessageGranules(message, granuleLimit = GRANULE_LOG_LIMIT) {
   const granules = get(message, 'payload.granules')
     || get(message, 'meta.input_granules')
     || get(message, 'cma.event.payload.granules')
     || get(message, 'cma.event.meta.input_granules');
 
   if (granules) {
-    return granules.map((granule) => granule.granuleId);
+    return granules.slice(0, granuleLimit)
+      .map((granule) => granule.granuleId);
   }
 
   return [];

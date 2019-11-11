@@ -264,6 +264,20 @@ test('GetMessageGranules returns granules if they are in the CMA event meta.inpu
     ]);
   });
 
+test('GetMessageGranules truncates granules over the specified limit', (t) => {
+  const inputGranules = Array(5).fill().map((e, i) => ({ granuleId: `granule-${i}` }));
+  const message = { payload: { granules: inputGranules } };
+
+  const messageGranules = getMessageGranules(message, 3);
+
+  t.deepEqual(messageGranules, [
+    'granule-0',
+    'granule-1',
+    'granule-2'
+  ]);
+
+});
+
 test('GetStackName returns a stack name if the stack is in the meta', (t) => {
   const stack = getStackName(testContext.inputEvent);
 
@@ -289,4 +303,3 @@ test('GetParentArn returns a parent arn if the parentArn is in the CMA event cum
   t.is(arn,
     'arn:aws:states:us-east-1:12345:execution:DiscoverGranules:8768aebb');
 });
-
