@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
-- **CUMULUS-1619** Extracting granules, stack name, parent execution ARN, and executions from the Cumulus message to be stored in environment variables. This is for logging initialization by the tasks. This will be limited to the first 500 granules to avoid environment variable truncation.
+- **CUMULUS-1619** - Granule IDs, stack name, parent execution ARN, and executions are extracted from the Cumulus message and stored in environment variables. These environment variables are used for logging initialization by the tasks. The granule IDs will be limited to the first 500 granules to avoid environment variable truncation.
 
 ## [v1.0.8] - 2019-09-16
 ### Added
