@@ -6,10 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v1.0.9] - 2019-11-11
+
+### Changed
+
+- **CUMULUS-1619** - Granule IDs, stack name, parent execution ARN, and executions are extracted from the Cumulus message and stored in environment variables. These environment variables are used for logging initialization by the tasks. The granule IDs will be limited to the first 500 granules to avoid environment variable truncation.
+
 ## [v1.0.8] - 2019-09-16
 ### Added
 - Updated CMA client to handle parameterized configuration, set execution env variable regardless of message format
-	
+
 ## [v1.0.7] - 2018-11-08
 
 ### Removed
@@ -53,7 +59,9 @@ Initial release
 
 
 [Unreleased]:
-https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.8...HEAD
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.9...HEAD
+[v1.0.8]:
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.8...1.0.9
 [v1.0.8]:
 https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.7...1.0.8
 [v1.0.7]:

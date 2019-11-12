@@ -107,7 +107,7 @@ There are two environment variables that can be used with this library. Both are
 
 ### Running Tests
 
-To run the tests for this package, run `npm test`
+To run the tests for this package, run `npm run lint && npm test`
 
 ## Why?
 
