@@ -187,6 +187,17 @@ function getExecutions(message) {
     || get(message, 'cma.event.cumulus_meta.execution_name');
 }
 
+/**
+ * Get current async operation id from Cumulus message.
+ *
+ * @param {Object} message - Cumulus message.
+ * @returns {string} asyncOperationId or null
+ */
+function getAsyncOperationId(message) {
+  return get(message, 'cumulus_meta.asyncOperationId')
+    || get(message, 'cma.event.cumulus_meta.asyncOperationId');
+}
+
 
 /**
  * Conditionally set environment variable when targeted value is not undefined.
@@ -214,6 +225,7 @@ function setCumulusEnvironment(cumulusMessage, context) {
   safeSetEnv('STACKNAME', getStackName(cumulusMessage));
   safeSetEnv('GRANULES', JSON.stringify(getMessageGranules(cumulusMessage)));
   safeSetEnv('PARENTARN', getParentArn(cumulusMessage));
+  safeSetEnv('ASYNCOPERATIONID', getAsyncOperationId(cumulusMessage));
 }
 
 /**

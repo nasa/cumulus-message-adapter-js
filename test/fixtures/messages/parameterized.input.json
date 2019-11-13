@@ -11,7 +11,8 @@
         "message_source": "local",
         "id": "id-1234",
         "execution_name": "execution_value",
-        "parentExecutionArn": "arn:aws:states:us-east-1:12345:execution:DiscoverGranules:8768aebb"
+        "parentExecutionArn": "arn:aws:states:us-east-1:12345:execution:DiscoverGranules:8768aebb",
+        "asyncOperationId": "async-id-123"
       },
       "meta": {
         "foo": "bar",
