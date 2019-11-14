@@ -19,6 +19,9 @@ const getStackName = cmaRewire.__get__(
 const getParentArn = cmaRewire.__get__(
   'getParentArn'
 );
+const getAsyncOperationId = cmaRewire.__get__(
+  'getAsyncOperationId'
+);
 
 // store test context data
 const testContext = {};
@@ -302,4 +305,18 @@ test('GetParentArn returns a parent arn if the parentArn is in the CMA event cum
 
   t.is(arn,
     'arn:aws:states:us-east-1:12345:execution:DiscoverGranules:8768aebb');
+});
+
+// eslint-disable-next-line max-len
+test('GetAsyncOperationId returns an async operation id if the asyncOperationId is in the cumulus_meta', (t) => {
+  const asyncOperationId = getAsyncOperationId(testContext.inputEvent);
+
+  t.is(asyncOperationId, 'async-id-123');
+});
+
+// eslint-disable-next-line max-len
+test('GetAsyncOperationId returns an async operation id if the asyncOperationId is in the CMA event cumulus_meta', (t) => {
+  const asyncOperationId = getAsyncOperationId(testContext.paramInputEvent);
+
+  t.is(asyncOperationId, 'async-id-123');
 });
