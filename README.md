@@ -3,8 +3,7 @@
 [![CircleCI](https://circleci.com/gh/nasa/cumulus-message-adapter-js.svg?style=svg)](https://circleci.com/gh/nasa/cumulus-message-adapter-js)
 [![npm version](https://badge.fury.io/js/%40cumulus%2Fcumulus-message-adapter-js.svg)](https://badge.fury.io/js/%40cumulus%2Fcumulus-message-adapter-js)
 
-
-## What is Cumulus?
+## What is Cumulus
 
 Cumulus is a cloud-based data ingest, archive, distribution and management
 prototype for NASA's future Earth science data streams.
@@ -37,9 +36,9 @@ should take two parameters: `nestedEvent` and `context`.
 
 The `nestedEvent` object contains two keys:
 
-  * `input` - the task's input, typically the `payload` of the message,
+* `input` - the task's input, typically the `payload` of the message,
     produced at runtime
-  * `config` - the task's configuration, with any templated variables
+* `config` - the task's configuration, with any templated variables
     resolved
 
 The `context` parameter is the standard Lambda context as passed by AWS.
@@ -58,13 +57,13 @@ must be communicated to those using the task.
 The Cumulus Message adapter for Javascript provides one method:
 `runCumulusTask`. It takes five parameters:
 
-  * `taskFunction` - the function containing your business logic (as described
+* `taskFunction` - the function containing your business logic (as described
     above)
-  * `cumulusMessage` - the event passed by Lambda, and should be a Cumulus
+* `cumulusMessage` - the event passed by Lambda, and should be a Cumulus
     Message
-  * `context` - the Lambda context
-  * `callback` - the callback passed by Lambda
-  * `schemas` - JSON object with the locations of the task schemas
+* `context` - the Lambda context
+* `callback` - the callback passed by Lambda
+* `schemas` - JSON object with the locations of the task schemas
 
 The `schemas` JSON should contain `input:`, `output:`, and `config:` with strings for each location. If the schema locations are not specified, the message adapter will look for schemas in a schemas directory at the root level for the files: input.json, output.json, or config.json. If the schema is not specified or missing, schema validation will not be performed.
 
@@ -92,16 +91,16 @@ creating release packages is available [here](https://docs.aws.amazon.com/lambda
 
 ## Usage in Cumulus Deployments
 
-For documenation on how to utilize this package in a Cumulus Deployment, view the [Cumulus Workflow Documenation](https://nasa.github.io/cumulus/docs/workflows/input_output).
+For documentation on how to utilize this package in a Cumulus Deployment, view the [Cumulus Workflow Documenation](https://nasa.github.io/cumulus/docs/workflows/input_output).
 
 ## Environment variables
 
-There are two environment variables that can be used with this library. Both are rarely needed for most use cases:
+There are two environment variables that can be used with this library:
 
-- `CUMULUS_MESSAGE_ADAPTER_DISABLED=true`
-  - Defaults to false. This env var disables Cumulus Message Adapter. This can be used to turn off the message adapter for tasks that adapt the message on their own, or for testing.
-- `CUMULUS_MESSAGE_ADAPTER_DIR`
-  - The default directory for Cumulus Message Adapter is the root directory of the lambda function. There are rare cases (see [cumulus-ecs-task](https://github.com/nasa/cumulus-ecs-task) for an example) where the adapter directory will be in a different location. This env var is unlikely to be useful for tasks, only for libraries that are working with Cumulus tasks at a higher level.
+* `CUMULUS_MESSAGE_ADAPTER_DISABLED=true`
+  * Defaults to false. This env var disables Cumulus Message Adapter. This can be used to turn off the message adapter for tasks that adapt the message on their own, or for testing.
+* `CUMULUS_MESSAGE_ADAPTER_DIR`
+  * The default directory for Cumulus Message Adapter is the root directory of the lambda function.
 
 ## Development
 
@@ -109,7 +108,7 @@ There are two environment variables that can be used with this library. Both are
 
 To run the tests for this package, run `npm run lint && npm test`
 
-## Why?
+## Why use this approach
 
 This approach has a few major advantages:
 
