@@ -26,7 +26,7 @@ class CumulusMessageAdapterExecutionError extends Error {
 function callCumulusMessageAdapter(command, input) {
   return new Promise((resolve, reject) => {
     const adapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter';
-    const cumulusMessageAdapter = cp.spawn('python', [adapterDir, command]);
+    const cumulusMessageAdapter = cp.spawn(`${adapterDir}/cma`, [command]);
 
     // Collect STDOUT
     let cumulusMessageAdapterStdout = '';
