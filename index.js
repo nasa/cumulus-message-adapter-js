@@ -3,6 +3,7 @@
 const cp = require('child_process');
 const get = require('lodash.get');
 
+
 const GRANULE_LOG_LIMIT = 500;
 
 /**
@@ -27,7 +28,10 @@ function callCumulusMessageAdapter(command, input) {
   return new Promise((resolve, reject) => {
     const adapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter';
     const cumulusMessageAdapter = cp.spawn(`${adapterDir}/cma`, [command]);
-
+    cumulusMessageAdapter.on('error', ()=> {
+      const msg = `CMA process failed to run, check that the CMA executable is present in ${adapterDir}`;
+      reject(new CumulusMessageAdapterExecutionError(msg));
+    })
     // Collect STDOUT
     let cumulusMessageAdapterStdout = '';
     cumulusMessageAdapter.stdout.on('data', (chunk) => {
@@ -49,8 +53,8 @@ function callCumulusMessageAdapter(command, input) {
     // here and expect a non-zero code when the close event fires.
     // If this line is not present, calling sled.stdin.end with a chunk will
     // result in an unhandled "Error: write EPIPE".
-    cumulusMessageAdapter.stdin.on('error', () => {});
 
+    cumulusMessageAdapter.stdin.on('error', () => {});
     cumulusMessageAdapter.stdin.end(JSON.stringify(input));
   });
 }
