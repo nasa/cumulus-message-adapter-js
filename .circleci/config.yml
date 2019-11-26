@@ -25,16 +25,17 @@ jobs:
       - run:
           name: Deploy
           command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              cd ~/cumulus-message-adapter
+            cd ~/cumulus-message-adapter
+            export VERSION=$(jq --raw-output .version package.json)
+            curl -H \
+              "Authorization: token $GITHUB_TOKEN" \
+              -d "{\"tag_name\": \"v$VERSION\", \"target_commitsh\": \"v$VERSION\", \"name\": \"v$VERSION\"}" \
+              -H "Content-Type: application/json" \
+              -X POST \
+              https://api.github.com/repos/markdboyd/cumulus-message-adapter-js/releases |grep \"url\" |grep releases |sed -e 's/.*\(https.*\)\"\,/\1/'| sed -e 's/api/uploads/'
 
-              export VERSION=$(jq --raw-output .version package.json)
-              curl -H \
-                "Authorization: token $GITHUB_TOKEN" \
-                -d "{\"tag_name\": \"v$VERSION\", \"target_commitsh\": \"v$VERSION\", \"name\": \"v$VERSION\"}" \
-                -H "Content-Type: application/json" \
-                -X POST \
-                https://api.github.com/repos/markdboyd/cumulus-message-adapter-js/releases |grep \"url\" |grep releases |sed -e 's/.*\(https.*\)\"\,/\1/'| sed -e 's/api/uploads/'
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              # cd ~/cumulus-message-adapter
 
               echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
               npm publish || echo 'npm publishing failed'
