@@ -46,6 +46,8 @@ workflows:
   publish:
     jobs:
       - publish
+          requires:
+            - build
           # filters:
           #   branches:
           #     only: master
