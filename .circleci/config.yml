@@ -22,13 +22,28 @@ jobs:
             - ./node_modules
           key: dependencies-{{ checksum "package.json" }}
 
+  publish:
+    docker:
+      - image: circleci/node:8.10
+    working_directory: ~/cumulus-message-adapter
+    steps:
+      - checkout
       - run:
-          name: Create release
+          name: Publish release
           command: |
             GITHUB_TOKEN=${GITHUB_TOKEN} sh bin/release.sh
-
       # - run:
       #     name: Publish to NPM
       #     command: |
       #       echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
       #       npm publish || echo 'npm publishing failed'
+
+workflows:
+  version: 2
+  build_and_publish:
+    jobs:
+      - build
+      - publish
+          # filters:
+          #   branches:
+          #     only: master
