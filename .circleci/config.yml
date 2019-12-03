@@ -27,6 +27,7 @@ jobs:
       - image: circleci/node:8.10
     working_directory: ~/cumulus-message-adapter
     steps:
+      - checkout
       - run:
           name: Publish release
           command: |
