@@ -11,7 +11,7 @@ if [ "$VERSION_TAG" != "$LATEST_TAG" ]; then
   echo "tag does not exist for version $VERSION_TAG, creating tag"
 
   # create git tag
-  git tag -a "$VERSION_TAG" -m "$VERSION_TAG" || "$VERSION_TAG already exists"
+  git tag -a "$VERSION_TAG" -m "$VERSION_TAG" || echo "$VERSION_TAG already exists"
   git push origin "$VERSION_TAG"
 fi
 
