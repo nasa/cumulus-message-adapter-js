@@ -29,11 +29,11 @@ jobs:
           name: Publish release
           command: |
             GITHUB_TOKEN=${GITHUB_TOKEN} sh bin/release.sh
-      - publish_npm:
-          name: Publish to NPM
-          command: |
-            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-            npm publish || echo 'npm publishing failed'
+      # - publish_npm:
+      #     name: Publish to NPM
+      #     command: |
+      #       echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      #       npm publish || echo 'npm publishing failed'
 
 workflows:
   version: 2
@@ -43,6 +43,6 @@ workflows:
   publish:
     jobs:
       - publish
-          filters:
-            branches:
-              only: master
+          # filters:
+          #   branches:
+          #     only: master
