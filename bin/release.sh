@@ -28,3 +28,4 @@ if [ -z "$RELEASE_URL" ]; then
     -H "Content-Type: application/json"\
     -X POST \
     https://api.github.com/repos/markdboyd/cumulus-message-adapter-js/releases
+fi
