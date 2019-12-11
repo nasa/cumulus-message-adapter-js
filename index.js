@@ -1,8 +1,8 @@
 'use strict';
 
-const cp = require('child_process');
+const execa = require('execa');
 const get = require('lodash.get');
-
+const { lookpath } = require('lookpath');
 
 const GRANULE_LOG_LIMIT = 500;
 
@@ -24,39 +24,27 @@ class CumulusMessageAdapterExecutionError extends Error {
  * @param {Object} input - the input to be sent to the message-adapter
  * @returns {Promise.<Object>} - the output of the message-adapter
  */
-function callCumulusMessageAdapter(command, input) {
-  return new Promise((resolve, reject) => {
-    const adapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter';
-    const cumulusMessageAdapter = cp.spawn(`${adapterDir}/cma`, [command]);
-    cumulusMessageAdapter.on('error', ()=> {
-      const msg = `CMA process failed to run, check that the CMA executable is present in ${adapterDir}`;
-      reject(new CumulusMessageAdapterExecutionError(msg));
-    })
-    // Collect STDOUT
-    let cumulusMessageAdapterStdout = '';
-    cumulusMessageAdapter.stdout.on('data', (chunk) => {
-      cumulusMessageAdapterStdout += chunk;
-    });
-
-    // Collect STDERR
-    let cumulusMessageAdapterStderr = '';
-    cumulusMessageAdapter.stderr.on('data', (chunk) => {
-      cumulusMessageAdapterStderr += chunk;
-    });
-
-    cumulusMessageAdapter.on('close', (code) => {
-      if (code === 0) resolve(JSON.parse(cumulusMessageAdapterStdout));
-      else reject(new CumulusMessageAdapterExecutionError(cumulusMessageAdapterStderr));
-    });
-
-    // If STDIN is closed already, something went wrong.  Don't handle it
-    // here and expect a non-zero code when the close event fires.
-    // If this line is not present, calling sled.stdin.end with a chunk will
-    // result in an unhandled "Error: write EPIPE".
-
+async function callCumulusMessageAdapter(command, input) {
+  const adapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter';
+  const systemPython = await lookpath('python');
+  let spawnArguments = [systemPython, [`${adapterDir}`, command]];
+  // If there is no system python, attempt use of pre=packaged CMA
+  if (!systemPython) {
+    spawnArguments = [`${adapterDir}/cma`, [command]];
+  }
+  try {
+    const cumulusMessageAdapter = execa(...spawnArguments);
     cumulusMessageAdapter.stdin.on('error', () => {});
     cumulusMessageAdapter.stdin.end(JSON.stringify(input));
-  });
+    const { stdout, stderr, exitCode } = await cumulusMessageAdapter;
+    if (exitCode === 0) return (JSON.parse(stdout));
+    throw new CumulusMessageAdapterExecutionError(stderr);
+  }
+  catch (error) {
+    const msg = `CMA process failed to run, check that python runtime is present in the path and/or
+    the CMA package is present in ${adapterDir}.   Error: ${error}`;
+    throw new CumulusMessageAdapterExecutionError(msg);
+  }
 }
 
 /**

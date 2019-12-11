@@ -51,6 +51,8 @@
     "rewire": "^4.0.1"
   },
   "dependencies": {
-    "lodash.get": "^4.4.2"
+    "execa": "^3.4.0",
+    "lodash.get": "^4.4.2",
+    "lookpath": "1.0.3"
   }
 }
