@@ -28,7 +28,7 @@ async function callCumulusMessageAdapter(command, input) {
   const adapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter';
   const systemPython = await lookpath('python');
   let spawnArguments = [systemPython, [`${adapterDir}`, command]];
-  // If there is no system python, attempt use of pre=packaged CMA
+  // If there is no system python, attempt use of pre=packaged CMA binary
   if (!systemPython) {
     spawnArguments = [`${adapterDir}/cma`, [command]];
   }

@@ -6,11 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [v1.1.0] - 2019-11-22
+## [v1.1.0] - 2019-12-12
 
 ### Changed
 
-- **CUMULUS-1627** - Add shell out call to utilize pre-packaged binary for CMA.   This is a breaking change and will require CMA > 1.1.2
+- **CUMULUS-1627** - Add shell out call to utilize pre-packaged AWS LINUX 2 binary for CMA when system python is unavailable.    This is a breaking change and will require CMA > 1.1.2
 
 ## [v1.0.10] - 2019-11-14
 
