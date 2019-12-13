@@ -33,7 +33,7 @@ async function callCumulusMessageAdapter(command, input) {
     spawnArguments = [systemPython, [`${adapterDir}`, command]];
   }
   else {
-    // If there is no system python, attempt use of pre=packaged CMA binary
+    // If there is no system python, attempt use of pre-packaged CMA binary
     spawnArguments = [`${adapterDir}/cma`, [command]];
   }
 
