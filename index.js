@@ -27,11 +27,16 @@ class CumulusMessageAdapterExecutionError extends Error {
 async function callCumulusMessageAdapter(command, input) {
   const adapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter';
   const systemPython = await lookpath('python');
-  let spawnArguments = [systemPython, [`${adapterDir}`, command]];
-  // If there is no system python, attempt use of pre=packaged CMA binary
-  if (!systemPython) {
+
+  let spawnArguments;
+  if (systemPython) {
+    spawnArguments = [systemPython, [`${adapterDir}`, command]];
+  }
+  else {
+    // If there is no system python, attempt use of pre=packaged CMA binary
     spawnArguments = [`${adapterDir}/cma`, [command]];
   }
+
   try {
     const cumulusMessageAdapter = execa(...spawnArguments);
     cumulusMessageAdapter.stdin.on('error', () => {});
