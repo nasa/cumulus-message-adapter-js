@@ -7,7 +7,7 @@ const clonedeep = require('lodash.clonedeep');
 const rewire = require('rewire');
 
 const cumulusMessageAdapter = require('../index');
-const { downloadCMA, extractZipFile } = require('./adapter');
+const { downloadCMA } = require('./adapter');
 
 const cmaRewire = rewire('../index');
 const getMessageGranules = cmaRewire.__get__(
@@ -30,15 +30,9 @@ test.before(async() => {
   const srcdir = __dirname;
   const destdir = path.join(__dirname, '../');
   // download and unzip the message adapter
-  if (process.env.LOCAL_CMA_ZIP_FILE) {
-    const dest = path.join(destdir, 'cumulus-message-adapter');
-    await extractZipFile(process.env.LOCAL_CMA_ZIP_FILE, dest);
-  }
-  else {
-    const { src, dest } = await downloadCMA(srcdir, destdir);
-    testContext.src = src;
-    testContext.dest = dest;
-  }
+  const { src, dest } = await downloadCMA(srcdir, destdir);
+  testContext.src = src;
+  testContext.dest = dest;
 
   const inputJson = path.join(__dirname, 'fixtures/messages/basic.input.json');
   testContext.inputEvent = JSON.parse(fs.readFileSync(inputJson));
@@ -278,7 +272,6 @@ test('GetMessageGranules truncates granules over the specified limit', (t) => {
     'granule-1',
     'granule-2'
   ]);
-
 });
 
 test('GetStackName returns a stack name if the stack is in the meta', (t) => {

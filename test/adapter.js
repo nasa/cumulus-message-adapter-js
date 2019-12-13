@@ -141,17 +141,19 @@ function fetchMessageAdapter(version, gitPath, filename, src, dest) {
  * @param {string} version - cumulus message adapter version number (optional)
  * @returns {Promise.<Object>} an object with path to the zip and extracted CMA
  */
-function downloadCMA(srcdir, destdir, version) {
+async function downloadCMA(srcdir, destdir, version) {
+  if (process.env.LOCAL_CMA_ZIP_FILE) {
+    const dest = path.join(destdir, 'cumulus-message-adapter');
+    await extractZipFile(process.env.LOCAL_CMA_ZIP_FILE, dest);
+    return { dest };
+  }
   // download and unzip the message adapter
   const gitPath = 'nasa/cumulus-message-adapter';
   const filename = 'cumulus-message-adapter.zip';
   const src = path.join(srcdir, 'cumulus-message-adapter.zip');
   const dest = path.join(destdir, 'cumulus-message-adapter');
-  return fetchMessageAdapter(version, gitPath, filename, src, dest)
-    .then(() => Promise.resolve({
-      src,
-      dest
-    }));
+  await fetchMessageAdapter(version, gitPath, filename, src, dest);
+  return { src, dest };
 }
 
 module.exports = {

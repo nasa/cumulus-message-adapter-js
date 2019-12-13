@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v1.1.0] - 2019-12-12
+
+### Changed
+
+- **CUMULUS-1627** - Add shell out call to utilize pre-packaged AWS LINUX 2 binary for CMA when system python is unavailable.    This is a breaking change if your task environment does not have python in the system path, but *generally* should be backward compatible with most use cases.   Use of the precompiled binary requires use of CMA > 1.1.2, and is specifically targeted at AWS Linux 2 node 10/12 lambda environments.
+
 ## [v1.0.10] - 2019-11-14
 
 ### Changed
