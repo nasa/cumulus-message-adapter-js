@@ -316,7 +316,6 @@ test('GetAsyncOperationId returns an async operation id if the asyncOperationId 
 
 test('callCumulusMessageAdapter throws a readable error on schema failure', async(t) => {
   const callCumulusMessageAdapter = cumulusMessageAdapter.__get__('callCumulusMessageAdapter');
-
   const result = await t.throwsAsync(() => callCumulusMessageAdapter('loadNestedEvent', {
     event: testContext.inputEvent,
     schemas: { input: './test/fixtures/schemas/error_schema/input.json' },
