@@ -321,7 +321,7 @@ test('callCumulusMessageAdapter throws a readable error on schema failure', asyn
     schemas: { input: './test/fixtures/schemas/error_schema/input.json' },
     context: {}
   }));
-  t.regex(result.message, new RegExp('Failed validating \'required\' in schema'));
+  t.regex(result.message, new RegExp('Failed validating u?\'required\' in schema'));
 });
 
 test('generateCMASpawnArguments uses packaged python if no system python', async(t) => {
