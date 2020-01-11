@@ -6,7 +6,7 @@ const path = require('path');
 const clonedeep = require('lodash.clonedeep');
 const rewire = require('rewire');
 
-const cumulusMessageAdapter = require('../index');
+const cumulusMessageAdapter = rewire('../index');
 const { downloadCMA } = require('./adapter');
 
 const cmaRewire = rewire('../index');
@@ -312,4 +312,36 @@ test('GetAsyncOperationId returns an async operation id if the asyncOperationId 
   const asyncOperationId = getAsyncOperationId(testContext.paramInputEvent);
 
   t.is(asyncOperationId, 'async-id-123');
+});
+
+test('callCumulusMessageAdapter throws a readable error on schema failure', async(t) => {
+  const callCumulusMessageAdapter = cumulusMessageAdapter.__get__('callCumulusMessageAdapter');
+  const result = await t.throwsAsync(() => callCumulusMessageAdapter('loadNestedEvent', {
+    event: testContext.inputEvent,
+    schemas: { input: './test/fixtures/schemas/error_schema/input.json' },
+    context: {}
+  }));
+  t.regex(result.message, new RegExp('Failed validating u?\'required\' in schema'));
+});
+
+test('generateCMASpawnArguments uses packaged python if no system python', async(t) => {
+  const messageAdapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter'
+  const generateCMASpawnArguments = cumulusMessageAdapter.__get__('generateCMASpawnArguments');
+  const revert = cumulusMessageAdapter.__set__('lookpath', () => false);
+  const command = 'foobar';
+  const result = await generateCMASpawnArguments(command);
+  revert();
+  t.is(result[0], `${messageAdapterDir}/cma`);
+  t.deepEqual(result[1], [command]);
+});
+
+test('generateCMASpawnArguments uses system python', async(t) => {
+  const messageAdapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter'
+  const generateCMASpawnArguments = cumulusMessageAdapter.__get__('generateCMASpawnArguments');
+  const revert = cumulusMessageAdapter.__set__('lookpath', () => '/foo/bar/python');
+  const command = 'foobar';
+  const result = await generateCMASpawnArguments(command);
+  revert();
+  t.is(result[0], '/foo/bar/python');
+  t.deepEqual(result[1], [messageAdapterDir, command]);
 });

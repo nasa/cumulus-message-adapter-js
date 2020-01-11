@@ -18,6 +18,22 @@ class CumulusMessageAdapterExecutionError extends Error {
 }
 
 /**
+ * Generates CMA command line arguments
+ *
+ * @param {string} command - the action to be performed by the message-adapter
+ * @returns {Promise.<Array>} - Returns arguments used to spawn the CMA
+ */
+async function generateCMASpawnArguments(command) {
+  const adapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter';
+  const systemPython = await lookpath('python');
+  if (systemPython) {
+    return [systemPython, [`${adapterDir}`, command]];
+  }
+  // If there is no system python, attempt use of pre-packaged CMA binary
+  return [`${adapterDir}/cma`, [command]];
+}
+
+/**
  * Invoke the cumulus-message-adapter
  *
  * @param {string} command - the action to be performed by the message-adapter
@@ -25,18 +41,7 @@ class CumulusMessageAdapterExecutionError extends Error {
  * @returns {Promise.<Object>} - the output of the message-adapter
  */
 async function callCumulusMessageAdapter(command, input) {
-  const adapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter';
-  const systemPython = await lookpath('python');
-
-  let spawnArguments;
-  if (systemPython) {
-    spawnArguments = [systemPython, [`${adapterDir}`, command]];
-  }
-  else {
-    // If there is no system python, attempt use of pre-packaged CMA binary
-    spawnArguments = [`${adapterDir}/cma`, [command]];
-  }
-
+  const spawnArguments = await generateCMASpawnArguments(command);
   try {
     const cumulusMessageAdapter = execa(...spawnArguments);
     cumulusMessageAdapter.stdin.on('error', () => {});
@@ -46,8 +51,9 @@ async function callCumulusMessageAdapter(command, input) {
     throw new CumulusMessageAdapterExecutionError(stderr);
   }
   catch (error) {
-    const msg = `CMA process failed to run, check that python runtime is present in the path and/or
-    the CMA package is present in ${adapterDir}.   Error: ${error}`;
+    const msg = `CMA process failed (${error.shortMessage})\n
+                 Trace: ${error.message}}\n\n\n
+                 STDERR: ${error.stderr}`;
     throw new CumulusMessageAdapterExecutionError(msg);
   }
 }
