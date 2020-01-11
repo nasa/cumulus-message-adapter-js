@@ -1,0 +1,35 @@
+{
+    "title": "TestSchema",
+    "description": "Schema fixture to break test",
+    "type": "object",
+    "required": [
+      "foobar"
+    ],
+    "properties": {
+      "foobar": {
+        "type": "array",
+        "description": "Array of all granules",
+        "items": {
+          "type": "object",
+          "required": ["granuleId", "files"],
+          "properties": {
+            "granuleId": {
+              "type": "string"
+            },
+            "files": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
