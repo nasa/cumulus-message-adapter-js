@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 const test = require('ava').serial;
 
 const fs = require('fs-extra');
@@ -10,6 +9,7 @@ const cumulusMessageAdapter = rewire('../index');
 const { downloadCMA } = require('./adapter');
 
 const cmaRewire = rewire('../index');
+/* eslint-disable no-underscore-dangle */
 const getMessageGranules = cmaRewire.__get__(
   'getMessageGranules'
 );
@@ -22,6 +22,7 @@ const getParentArn = cmaRewire.__get__(
 const getAsyncOperationId = cmaRewire.__get__(
   'getAsyncOperationId'
 );
+/* eslint-enable no-underscore-dangle */
 
 // store test context data
 const testContext = {};
@@ -314,6 +315,7 @@ test('GetAsyncOperationId returns an async operation id if the asyncOperationId 
   t.is(asyncOperationId, 'async-id-123');
 });
 
+/* eslint-disable no-underscore-dangle */
 test('callCumulusMessageAdapter throws a readable error on schema failure', async(t) => {
   const callCumulusMessageAdapter = cumulusMessageAdapter.__get__('callCumulusMessageAdapter');
   const result = await t.throwsAsync(() => callCumulusMessageAdapter('loadNestedEvent', {
@@ -345,3 +347,4 @@ test('generateCMASpawnArguments uses system python', async(t) => {
   t.is(result[0], '/foo/bar/python');
   t.deepEqual(result[1], [messageAdapterDir, command]);
 });
+/* eslint-enable no-underscore-dangle */
