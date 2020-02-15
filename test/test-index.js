@@ -325,7 +325,7 @@ test('callCumulusMessageAdapter throws a readable error on schema failure', asyn
 });
 
 test('generateCMASpawnArguments uses packaged python if no system python', async(t) => {
-  const messageAdapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter'
+  const messageAdapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter';
   const generateCMASpawnArguments = cumulusMessageAdapter.__get__('generateCMASpawnArguments');
   const revert = cumulusMessageAdapter.__set__('lookpath', () => false);
   const command = 'foobar';
@@ -336,7 +336,7 @@ test('generateCMASpawnArguments uses packaged python if no system python', async
 });
 
 test('generateCMASpawnArguments uses system python', async(t) => {
-  const messageAdapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter'
+  const messageAdapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter';
   const generateCMASpawnArguments = cumulusMessageAdapter.__get__('generateCMASpawnArguments');
   const revert = cumulusMessageAdapter.__set__('lookpath', () => '/foo/bar/python');
   const command = 'foobar';
