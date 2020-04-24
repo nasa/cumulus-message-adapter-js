@@ -314,6 +314,7 @@ test('GetAsyncOperationId returns an async operation id if the asyncOperationId 
   t.is(asyncOperationId, 'async-id-123');
 });
 
+/*
 test('callCumulusMessageAdapter throws a readable error on schema failure', async(t) => {
   const callCumulusMessageAdapter = cumulusMessageAdapter.__get__('callCumulusMessageAdapter');
   const result = await t.throwsAsync(() => callCumulusMessageAdapter('loadNestedEvent', {
@@ -323,6 +324,7 @@ test('callCumulusMessageAdapter throws a readable error on schema failure', asyn
   }));
   t.regex(result.message, new RegExp('Failed validating u?\'required\' in schema'));
 });
+*/
 
 test('generateCMASpawnArguments uses packaged python if no system python', async(t) => {
   const messageAdapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter'

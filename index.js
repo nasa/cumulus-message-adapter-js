@@ -1,8 +1,9 @@
 'use strict';
 
-const execa = require('execa');
+const childProcess = require('child_process');
 const get = require('lodash.get');
 const { lookpath } = require('lookpath');
+const readline = require('readline');
 
 const GRANULE_LOG_LIMIT = 500;
 
@@ -33,22 +34,27 @@ async function generateCMASpawnArguments(command) {
   return [`${adapterDir}/cma`, [command]];
 }
 
+
 /**
  * Invoke the cumulus-message-adapter
  *
- * @param {string} command - the action to be performed by the message-adapter
- * @param {Object} input - the input to be sent to the message-adapter
+
  * @returns {Promise.<Object>} - the output of the message-adapter
  */
-async function callCumulusMessageAdapter(command, input) {
-  const spawnArguments = await generateCMASpawnArguments(command);
+async function invokeCumulusMessageAdapter() {
+  const spawnArguments = await generateCMASpawnArguments('stream');
   try {
-    const cumulusMessageAdapter = execa(...spawnArguments);
-    cumulusMessageAdapter.stdin.on('error', () => {});
-    cumulusMessageAdapter.stdin.end(JSON.stringify(input));
-    const { stdout, stderr, exitCode } = await cumulusMessageAdapter;
-    if (exitCode === 0) return (JSON.parse(stdout));
-    throw new CumulusMessageAdapterExecutionError(stderr);
+    // Would like to use sindresorhus's lib, however
+    // https://github.com/sindresorhus/execa/issues/411
+    // and related mean that pulling in the childProcess
+    // is hacky.   Using node native for now, should revisit
+    // the results #414 in the future.
+    const cumulusMessageAdapter = childProcess.spawn(...spawnArguments);
+    cumulusMessageAdapter.stdin.setEncoding = 'utf8';
+    cumulusMessageAdapter.stdout.setEncoding = 'utf8';
+    cumulusMessageAdapter.stderr.setEncoding = 'utf8';
+    cumulusMessageAdapter.stdin.on('error', () => { });
+    return cumulusMessageAdapter;
   }
   catch (error) {
     const msg = `CMA process failed (${error.shortMessage})\n
@@ -56,62 +62,6 @@ async function callCumulusMessageAdapter(command, input) {
                  STDERR: ${error.stderr}`;
     throw new CumulusMessageAdapterExecutionError(msg);
   }
-}
-
-/**
- * If a Cumulus Remote Message is passed, fetch it and return a full Cumulus
- * Message with updated task metadata.
- *
- * @param {Object} cumulusMessage - either a full Cumulus Message or a Cumulus Remote Message
- * @param {Object} context - an AWS Lambda context
- * @param {string} schemaLocations - contains location of schema files, can be null
- * @returns {Promise.<Object>} - a full Cumulus Message
- */
-function loadAndUpdateRemoteEvent(cumulusMessage, context, schemaLocations) {
-  return callCumulusMessageAdapter('loadAndUpdateRemoteEvent', {
-    event: cumulusMessage,
-    context,
-    schemas: schemaLocations
-  });
-}
-
-/**
- * Query AWS to create a task-specific event
- *
- * @param {Object} cumulusMessage - a full Cumulus Message
- * @param {Object} context - an AWS Lambda context
- * @param {string} schemaLocations - contains location of schema files, can be null
- * @returns {Promise.<Object>} - an Object containing the keys input, config and messageConfig
- */
-function loadNestedEvent(cumulusMessage, context, schemaLocations) {
-  return callCumulusMessageAdapter('loadNestedEvent', {
-    event: cumulusMessage,
-    schemas: schemaLocations,
-    context
-  });
-}
-
-/**
- * Create a new Cumulus message with the output of this task
- *
- * @param {Object} handlerResponse - the return value of the task function
- * @param {Object} cumulusMessage - a full Cumulus Message
- * @param {Object} messageConfig - the value of the messageConfig key returned by loadNestedEvent
- * @param {string} schemaLocations - contains location of schema files, can be null
- * @returns {Promise.<Object>} - a Cumulus Message or a Cumulus Remote Message
- */
-function createNextEvent(handlerResponse, cumulusMessage, messageConfig, schemaLocations) {
-  const input = {
-    event: cumulusMessage,
-    handler_response: handlerResponse
-  };
-
-  // If input.message_config is undefined, JSON.stringify will drop the key.
-  // If it is instead set to null, the key is retained and the value is null.
-  input.message_config = messageConfig || null;
-  input.schemas = schemaLocations;
-
-  return callCumulusMessageAdapter('createNextEvent', input);
 }
 
 /**
@@ -231,6 +181,123 @@ function setCumulusEnvironment(cumulusMessage, context) {
   safeSetEnv('ASYNCOPERATIONID', getAsyncOperationId(cumulusMessage));
 }
 
+
+// eslint-disable-next-line require-jsdoc
+function runCumulusTask(taskFunction, cumulusMessage, context,
+  callback, schemas = null) {
+  setCumulusEnvironment(cumulusMessage, context);
+  if (process.env.CUMULUS_MESSAGE_ADAPTER_DISABLED === 'true') {
+    invokePromisedTaskFunction(
+      taskFunction,
+      cumulusMessage,
+      context
+    ).then((nextEvent) => callback(null, nextEvent));
+  }
+  else {
+    invokeCumulusMessageAdapter().then((messageAdapter) => {
+      let stderr = '';
+      messageAdapter.on('close', () => {
+        console.log('closing');
+        if (messageAdapter.exitCode !== 0) {
+          callback(new CumulusMessageAdapterExecutionError(stderr));
+        }
+      });
+      messageAdapter.stderr.on('data', (data) => {
+        stderr += String(data);
+      });
+      const events = {};
+      let loadEventBuffer = '';
+      const cma = messageAdapter;
+
+      const rl = readline.createInterface({
+        input: cma.stdout
+      });
+
+      // eslint-disable-next-line require-jsdoc
+      const cne = (cneRl, cneCma, handlerResponse, message,
+        messageConfig, cneSchemas) => {
+        let buffer = '';
+        rl.resume();
+        cneCma.stdin.write('createNextEvent\n');
+        cneCma.stdin.write(JSON.stringify({
+          event: message,
+          handler_response: handlerResponse,
+          message_config: messageConfig,
+          cneSchemas
+        }));
+        cneCma.stdin.write('\n<EOC>\n');
+        cneRl.on('line', (input) => {
+          if (input.endsWith('<EOC>')) {
+            cneRl.pause();
+            const endInput = input.replace('<EOC>', '');
+            buffer += `${endInput}`;
+            const cmaOutput = JSON.parse(buffer);
+            callback(null, cmaOutput);
+          }
+          buffer += `${input}\n`;
+        });
+      };
+
+      // eslint-disable-next-line require-jsdoc
+      const lne = (lneRl, lneCma, output, lneContext, lneSchemas) => {
+        setCumulusEnvironment(output, lneContext);
+        let buffer = '';
+        lneRl.resume();
+        lneCma.stdin.write('loadNestedEvent\n');
+        lneCma.stdin.write(JSON.stringify({
+          event: output,
+          lneSchemas,
+          lneContext
+        }));
+        lneCma.stdin.write('\n<EOC>\n');
+        lneRl.on('line', (input) => {
+          if (input.endsWith('<EOC>')) {
+            lneRl.pause();
+            rl.removeAllListeners('line');
+            const endInput = input.replace('<EOC>', '');
+            buffer += `${endInput}`;
+            const cmaOutput = JSON.parse(buffer);
+            events.loadNestedEvent = cmaOutput;
+            invokePromisedTaskFunction(taskFunction, cmaOutput, context).then((taskOutput) => {
+              // taskFunction(cmaOutput, lneContext).then((taskOutput) => {
+              events.taskOutput = taskOutput;
+              cne(lneRl, lneCma,
+                events.taskOutput, events.loadAndUpdateRemoteEvent,
+                events.loadNestedEvent.messageConfig, schemas);
+            }).catch((err) => {
+              if (err.name && err.name.includes('WorkflowError')) {
+                callback(null, { ...cumulusMessage, payload: null, exception: err.name });
+              }
+              callback(err);
+            });
+          }
+          buffer += `${input}\n`;
+        });
+      };
+      rl.on('line', (input) => {
+        if (input.endsWith('<EOC>')) {
+          rl.pause();
+          rl.removeAllListeners('line');
+          const endInput = input.replace('<EOC>', '');
+          loadEventBuffer += `${endInput}`;
+          const cmaOutput = JSON.parse(loadEventBuffer);
+          events.loadAndUpdateRemoteEvent = cmaOutput;
+          lne(rl, cma, cmaOutput, context, schemas);
+        }
+        loadEventBuffer += `${input}\n`;
+      });
+
+      cma.stdin.write('loadAndUpdateRemoteEvent\n');
+      cma.stdin.write(JSON.stringify({
+        event: cumulusMessage,
+        context,
+        schemas
+      }));
+      cma.stdin.write('\n<EOC>\n');
+    });
+  }
+}
+
 /**
  * Build a nested Cumulus event and pass it to a tasks's business function
  *
@@ -243,10 +310,11 @@ function setCumulusEnvironment(cumulusMessage, context) {
  * @returns {undefined} - there is no return value from this function, but
  *   the callback function will be invoked with either an error or a full
  *   Cumulus message containing the result of the business logic function.
- */
+ *//*
 function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas = null) {
-  let promisedNextEvent;
+  console.log('Running cumulus task');
   setCumulusEnvironment(cumulusMessage, context);
+  let promisedNextEvent;
   if (process.env.CUMULUS_MESSAGE_ADAPTER_DISABLED === 'true') {
     promisedNextEvent = invokePromisedTaskFunction(
       taskFunction,
@@ -282,5 +350,8 @@ function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas
       }
       else callback(err);
     });
-}
+} */
 exports.runCumulusTask = runCumulusTask;
+// exports.callCumulusMessageAdapter = callCumulusMessageAdapter;
+// DEPRECATE
+exports.invokeCumulusMessageAdapter = invokeCumulusMessageAdapter;
