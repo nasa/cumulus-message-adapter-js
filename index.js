@@ -38,12 +38,12 @@ async function generateCMASpawnArguments(command) {
 /**
  * Invoke the cumulus-message-adapter
  *
-
  * @returns {Promise.<Object>} - the output of the message-adapter
  */
 async function invokeCumulusMessageAdapter() {
   const spawnArguments = await generateCMASpawnArguments('stream');
   try {
+    const errorObj = { stderr: '' };
     // Would like to use sindresorhus's lib, however
     // https://github.com/sindresorhus/execa/issues/411
     // and related mean that pulling in the childProcess
@@ -54,7 +54,16 @@ async function invokeCumulusMessageAdapter() {
     cumulusMessageAdapter.stdout.setEncoding = 'utf8';
     cumulusMessageAdapter.stderr.setEncoding = 'utf8';
     cumulusMessageAdapter.stdin.on('error', () => { });
-    return cumulusMessageAdapter;
+    cumulusMessageAdapter.on('close', () => {
+      console.log(`CMA Exit Code: ${cumulusMessageAdapter.exitCode} `);
+      if (cumulusMessageAdapter.exitCode !== 0) {
+        console.log(`CMA Failure: ${errorObj.stderr}`);
+      }
+    });
+    cumulusMessageAdapter.stderr.on('data', (data) => {
+      errorObj.stderr += String(data);
+    });
+    return { cumulusMessageAdapter, errorObj };
   }
   catch (error) {
     const msg = `CMA process failed (${error.shortMessage})\n
@@ -181,121 +190,34 @@ function setCumulusEnvironment(cumulusMessage, context) {
   safeSetEnv('ASYNCOPERATIONID', getAsyncOperationId(cumulusMessage));
 }
 
-
-// eslint-disable-next-line require-jsdoc
-function runCumulusTask(taskFunction, cumulusMessage, context,
-  callback, schemas = null) {
-  setCumulusEnvironment(cumulusMessage, context);
-  if (process.env.CUMULUS_MESSAGE_ADAPTER_DISABLED === 'true') {
-    invokePromisedTaskFunction(
-      taskFunction,
-      cumulusMessage,
-      context
-    ).then((nextEvent) => callback(null, nextEvent));
-  }
-  else {
-    invokeCumulusMessageAdapter().then((messageAdapter) => {
-      let stderr = '';
-      messageAdapter.on('close', () => {
-        console.log('closing');
-        if (messageAdapter.exitCode !== 0) {
-          callback(new CumulusMessageAdapterExecutionError(stderr));
-        }
-      });
-      messageAdapter.stderr.on('data', (data) => {
-        stderr += String(data);
-      });
-      const events = {};
-      let loadEventBuffer = '';
-      const cma = messageAdapter;
-
-      const rl = readline.createInterface({
-        input: cma.stdout
-      });
-
-      // eslint-disable-next-line require-jsdoc
-      const cne = (cneRl, cneCma, handlerResponse, message,
-        messageConfig, cneSchemas) => {
-        let buffer = '';
-        rl.resume();
-        cneCma.stdin.write('createNextEvent\n');
-        cneCma.stdin.write(JSON.stringify({
-          event: message,
-          handler_response: handlerResponse,
-          message_config: messageConfig,
-          cneSchemas
-        }));
-        cneCma.stdin.write('\n<EOC>\n');
-        cneRl.on('line', (input) => {
-          if (input.endsWith('<EOC>')) {
-            cneRl.pause();
-            const endInput = input.replace('<EOC>', '');
-            buffer += `${endInput}`;
-            const cmaOutput = JSON.parse(buffer);
-            callback(null, cmaOutput);
-          }
-          buffer += `${input}\n`;
-        });
-      };
-
-      // eslint-disable-next-line require-jsdoc
-      const lne = (lneRl, lneCma, output, lneContext, lneSchemas) => {
-        setCumulusEnvironment(output, lneContext);
-        let buffer = '';
-        lneRl.resume();
-        lneCma.stdin.write('loadNestedEvent\n');
-        lneCma.stdin.write(JSON.stringify({
-          event: output,
-          lneSchemas,
-          lneContext
-        }));
-        lneCma.stdin.write('\n<EOC>\n');
-        lneRl.on('line', (input) => {
-          if (input.endsWith('<EOC>')) {
-            lneRl.pause();
-            rl.removeAllListeners('line');
-            const endInput = input.replace('<EOC>', '');
-            buffer += `${endInput}`;
-            const cmaOutput = JSON.parse(buffer);
-            events.loadNestedEvent = cmaOutput;
-            invokePromisedTaskFunction(taskFunction, cmaOutput, context).then((taskOutput) => {
-              // taskFunction(cmaOutput, lneContext).then((taskOutput) => {
-              events.taskOutput = taskOutput;
-              cne(lneRl, lneCma,
-                events.taskOutput, events.loadAndUpdateRemoteEvent,
-                events.loadNestedEvent.messageConfig, schemas);
-            }).catch((err) => {
-              if (err.name && err.name.includes('WorkflowError')) {
-                callback(null, { ...cumulusMessage, payload: null, exception: err.name });
-              }
-              callback(err);
-            });
-          }
-          buffer += `${input}\n`;
-        });
-      };
-      rl.on('line', (input) => {
-        if (input.endsWith('<EOC>')) {
-          rl.pause();
-          rl.removeAllListeners('line');
-          const endInput = input.replace('<EOC>', '');
-          loadEventBuffer += `${endInput}`;
-          const cmaOutput = JSON.parse(loadEventBuffer);
-          events.loadAndUpdateRemoteEvent = cmaOutput;
-          lne(rl, cma, cmaOutput, context, schemas);
-        }
-        loadEventBuffer += `${input}\n`;
-      });
-
-      cma.stdin.write('loadAndUpdateRemoteEvent\n');
-      cma.stdin.write(JSON.stringify({
-        event: cumulusMessage,
-        context,
-        schemas
-      }));
-      cma.stdin.write('\n<EOC>\n');
+/**
+ * Read the CMA output/results after sending a command
+ *
+ * @param {Object} readLine - configured readline object
+ * @param {*} errorObj - cma errorObject with stderr string buffer
+ * @returns {Promise<Object>} - Promise that resolves to a parsed JSON object
+ *                              from the CMA output
+ */
+async function getCmaOutput(readLine, errorObj) {
+  return new Promise((resolve, reject) => {
+    let buffer = '';
+    readLine.resume();
+    readLine.on('line', (input) => {
+      if (input.endsWith('<EOC>')) {
+        readLine.pause();
+        readLine.removeAllListeners('line');
+        const endInput = input.replace('<EOC>', '');
+        buffer += endInput;
+        resolve(JSON.parse(buffer));
+      }
+      else {
+        buffer += input;
+      }
     });
-  }
+    readLine.on('close', () => {
+      reject(new CumulusMessageAdapterExecutionError(errorObj.stderr));
+    });
+  });
 }
 
 /**
@@ -304,54 +226,64 @@ function runCumulusTask(taskFunction, cumulusMessage, context,
  * @param {Function} taskFunction - the function containing the business logic of the task
  * @param {Object} cumulusMessage - either a full Cumulus Message or a Cumulus Remote Message
  * @param {Object} context - an AWS Lambda context
- * @param {Function} callback - the callback to be called when the taskFunction
- *   has completed.  This should be the callback passed to the Lambda handler.
  * @param {string} schemas - Location of schema files, defaults to null.
- * @returns {undefined} - there is no return value from this function, but
- *   the callback function will be invoked with either an error or a full
- *   Cumulus message containing the result of the business logic function.
- *//*
-function runCumulusTask(taskFunction, cumulusMessage, context, callback, schemas = null) {
-  console.log('Running cumulus task');
-  setCumulusEnvironment(cumulusMessage, context);
-  let promisedNextEvent;
+ * @returns {Object} - The response from the call to createNextEvent or the taskFunction
+ *                     depending on the CUMULUS_MESSAGE_ADAPTER_DISABLED environment variable
+ */
+async function runCumulusTask(taskFunction, cumulusMessage,
+  context, schemas = null) {
   if (process.env.CUMULUS_MESSAGE_ADAPTER_DISABLED === 'true') {
-    promisedNextEvent = invokePromisedTaskFunction(
+    const functionReturn = await invokePromisedTaskFunction(
       taskFunction,
       cumulusMessage,
       context
     );
+    return functionReturn;
   }
-  else {
-    const promisedRemoteEvent = loadAndUpdateRemoteEvent(cumulusMessage, context, schemas);
-    const promisedNestedEvent = promisedRemoteEvent.then((event) => {
-      // Reset the environment with what we can grab from the event from S3
-      setCumulusEnvironment(event, context);
-      return loadNestedEvent(event, context, schemas);
+  try {
+    const { cumulusMessageAdapter, errorObj } = await invokeCumulusMessageAdapter();
+    const cma = cumulusMessageAdapter;
+    const rl = readline.createInterface({
+      input: cma.stdout
     });
+    cma.stdin.write('loadAndUpdateRemoteEvent\n');
+    cma.stdin.write(JSON.stringify({
+      event: cumulusMessage,
+      context,
+      schemas
+    }));
+    cma.stdin.write('\n<EOC>\n');
 
-    const promisedTaskOutput = promisedNestedEvent
-      .then((nestedEvent) => taskFunction(nestedEvent, context));
-
-    promisedNextEvent = Promise.all([promisedTaskOutput, promisedRemoteEvent, promisedNestedEvent])
-      .then((resolvedPromises) => createNextEvent(
-        resolvedPromises[0],
-        resolvedPromises[1],
-        resolvedPromises[2].messageConfig,
-        schemas
-      ));
+    const loadAndUpdateRemoteEventOutput = await getCmaOutput(rl, errorObj);
+    setCumulusEnvironment(loadAndUpdateRemoteEventOutput, context);
+    cma.stdin.write('loadNestedEvent\n');
+    cma.stdin.write(JSON.stringify({
+      event: loadAndUpdateRemoteEventOutput,
+      schemas,
+      context
+    }));
+    cma.stdin.write('\n<EOC>\n');
+    const loadNestedEventOutput = await getCmaOutput(rl, errorObj);
+    const taskOutput = await invokePromisedTaskFunction(taskFunction,
+      loadNestedEventOutput, context);
+    cma.stdin.write('createNextEvent\n');
+    cma.stdin.write(JSON.stringify({
+      event: loadAndUpdateRemoteEventOutput,
+      handler_response: taskOutput,
+      message_config: loadNestedEventOutput.messageConfig,
+      schemas
+    }));
+    cma.stdin.write('\n<EOC>\n');
+    const createNextEventOutput = await getCmaOutput(rl, errorObj);
+    return createNextEventOutput;
   }
+  catch (error) {
+    if (error.name && error.name.includes('WorkflowError')) {
+      return { ...cumulusMessage, payload: null, exception: error.name };
+    }
+    throw error;
+  }
+}
 
-  promisedNextEvent
-    .then((nextEvent) => callback(null, nextEvent))
-    .catch((err) => {
-      if (err.name && err.name.includes('WorkflowError')) {
-        callback(null, { ...cumulusMessage, payload: null, exception: err.name });
-      }
-      else callback(err);
-    });
-} */
 exports.runCumulusTask = runCumulusTask;
-// exports.callCumulusMessageAdapter = callCumulusMessageAdapter;
-// DEPRECATE
 exports.invokeCumulusMessageAdapter = invokeCumulusMessageAdapter;
