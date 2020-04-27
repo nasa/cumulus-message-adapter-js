@@ -275,6 +275,7 @@ async function runCumulusTask(taskFunction, cumulusMessage,
     }));
     cma.stdin.write('\n<EOC>\n');
     const createNextEventOutput = await getCmaOutput(rl, errorObj);
+    cma.stdin.write('\n<EXIT>\n');
     return createNextEventOutput;
   }
   catch (error) {
