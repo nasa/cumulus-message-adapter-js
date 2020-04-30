@@ -30,7 +30,7 @@ test('CUMULUS_MESSAGE_ADAPTER_DIR sets the location of the message adapter', asy
   process.env.CUMULUS_MESSAGE_ADAPTER_DIR = dir;
 
   const businessLogicOutput = 42;
-  const businessLogic = () => businessLogicOutput;
+  const businessLogic = async() => businessLogicOutput;
 
   // assign task output from the lambda
   const expectedOutput = clonedeep(testContext.outputEvent);
