@@ -27,7 +27,7 @@ class CumulusMessageAdapterExecutionError extends Error {
 async function generateCMASpawnArguments(command) {
   const adapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter';
   const systemPython = await lookpath('python');
-  if (systemPython) {
+  if (systemPython && process.env.USE_CMA_BINARY !== 'true') {
     return [systemPython, [`${adapterDir}`, command]];
   }
   // If there is no system python, attempt use of pre-packaged CMA binary
@@ -42,18 +42,18 @@ async function generateCMASpawnArguments(command) {
  */
 async function invokeCumulusMessageAdapter() {
   const spawnArguments = await generateCMASpawnArguments('stream');
+  const errorObj = { stderr: '' };
   try {
-    const errorObj = { stderr: '' };
     // Would like to use sindresorhus's lib, however
     // https://github.com/sindresorhus/execa/issues/411
     // and related mean that pulling in the childProcess
     // is hacky.   Using node native for now, should revisit
     // the results #414 in the future.
     const cumulusMessageAdapter = childProcess.spawn(...spawnArguments);
+    cumulusMessageAdapter.on('error', () => {});
     cumulusMessageAdapter.stdin.setEncoding = 'utf8';
     cumulusMessageAdapter.stdout.setEncoding = 'utf8';
     cumulusMessageAdapter.stderr.setEncoding = 'utf8';
-    cumulusMessageAdapter.stdin.on('error', () => { });
     cumulusMessageAdapter.on('close', () => {
       console.log(`CMA Exit Code: ${cumulusMessageAdapter.exitCode} `);
       if (cumulusMessageAdapter.exitCode !== 0) {
@@ -68,7 +68,7 @@ async function invokeCumulusMessageAdapter() {
   catch (error) {
     const msg = `CMA process failed (${error.shortMessage})\n
                  Trace: ${error.message}}\n\n\n
-                 STDERR: ${error.stderr}`;
+                 STDERR: ${errorObj.stderr}`;
     throw new CumulusMessageAdapterExecutionError(msg);
   }
 }

@@ -20,12 +20,13 @@ test.before(async() => {
   testContext.inputEvent = JSON.parse(fs.readFileSync(inputJson));
   const outputJson = path.join(__dirname, 'fixtures/messages/basic.output.json');
   testContext.outputEvent = JSON.parse(fs.readFileSync(outputJson));
+  process.env.USE_CMA_BINARY = 'true';
 });
 
 test.after.always('final cleanup', () => fs.remove(testContext.dir));
 
 test('CUMULUS_MESSAGE_ADAPTER_DIR sets the location of the message adapter', async(t) => {
-  const dir = path.join(__dirname, 'alternate-dir', 'cumulus-message-adapter');
+  const dir = path.join(__dirname, 'alternate-dir', 'cumulus-message-adapter/cma_bin');
   process.env.CUMULUS_MESSAGE_ADAPTER_DIR = dir;
 
   const businessLogicOutput = 42;
@@ -44,14 +45,14 @@ test('CUMULUS_MESSAGE_ADAPTER_DIR sets the location of the message adapter', asy
 });
 
 test('callback returns error if CUMULUS_MESSAGE_ADAPTER_DIR is incorrect', async(t) => {
-  const dir = path.join(__dirname, 'wrong-dir', 'cumulus-message-adapter');
+  const dir = path.join(__dirname, 'wrong-dir', 'cumulus-message-adapter/cma_bin');
   process.env.CUMULUS_MESSAGE_ADAPTER_DIR = dir;
 
   const businessLogicOutput = 42;
-  const businessLogic = () => businessLogicOutput;
+  const businessLogic = async () => businessLogicOutput;
 
   const inputEvent = { a: 1 };
 
   await t.throwsAsync(cumulusMessageAdapter.runCumulusTask(businessLogic,
-    inputEvent, {}));
+    inputEvent, {}), null);
 });
