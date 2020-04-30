@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [v1.2.0]
 
-### Breaking Changes
+### BREAKING CHANGES
 
 - **CUMULUS-1896**
   - Updated `cumulus-message-adapter-js`: to be asynchronous - handler functions should be updated to use 'async' style handlers.  See [AWS node.js handler documentation](https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html) for details.    Lambdas utilizing this module will require an update to their handler.
