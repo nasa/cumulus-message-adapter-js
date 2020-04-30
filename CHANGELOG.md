@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### BREAKING CHANGES
 
 - **CUMULUS-1896**
-  - Updated `cumulus-message-adapter-js`: to be asynchronous - handler functions should be updated to use 'async' style handlers.  See [AWS node.js handler documentation](https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html) for details.    Lambdas utilizing this module will require an update to their handler.
+  - Updated `cumulus-message-adapter-js` to be asynchronous - handler functions should be updated to use 'async' style handlers.  See [AWS node.js handler documentation](https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html) for details.    Lambdas utilizing this module will require an update to their handler.
   - Updated [Cumulus Message Adapter (CMA)](https://github.com/nasa/cumulus-message-adapter) subprocess calls to utilize streaming interface from CMA >= 1.3.0.   Use of this and future versions will require an update to CMA >= 1.3.0
 
 
