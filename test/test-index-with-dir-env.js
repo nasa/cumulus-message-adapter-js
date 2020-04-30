@@ -26,7 +26,7 @@ test.before(async() => {
 test.after.always('final cleanup', () => fs.remove(testContext.dir));
 
 test('CUMULUS_MESSAGE_ADAPTER_DIR sets the location of the message adapter', async(t) => {
-  const dir = path.join(__dirname, 'alternate-dir', 'cumulus-message-adapter/cma_bin');
+  const dir = path.join(__dirname, 'alternate-dir', 'cumulus-message-adapter');
   process.env.CUMULUS_MESSAGE_ADAPTER_DIR = dir;
 
   const businessLogicOutput = 42;
@@ -45,7 +45,7 @@ test('CUMULUS_MESSAGE_ADAPTER_DIR sets the location of the message adapter', asy
 });
 
 test('callback returns error if CUMULUS_MESSAGE_ADAPTER_DIR is incorrect', async(t) => {
-  const dir = path.join(__dirname, 'wrong-dir', 'cumulus-message-adapter/cma_bin');
+  const dir = path.join(__dirname, 'wrong-dir', 'cumulus-message-adapter');
   process.env.CUMULUS_MESSAGE_ADAPTER_DIR = dir;
 
   const businessLogicOutput = 42;

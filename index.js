@@ -31,7 +31,7 @@ async function generateCMASpawnArguments(command) {
     return [systemPython, [`${adapterDir}`, command]];
   }
   // If there is no system python, attempt use of pre-packaged CMA binary
-  return [`${adapterDir}/cma`, [command]];
+  return [`${adapterDir}/cma_bin/cma`, [command]];
 }
 
 

@@ -33,7 +33,7 @@ test.before(async () => {
   const { src, dest } = await downloadCMA(srcdir, destdir);
   testContext.src = src;
   testContext.dest = dest;
-  process.env.CUMULUS_MESSAGE_ADAPTER_DIR = `${dest}/cma_bin/`;
+  process.env.CUMULUS_MESSAGE_ADAPTER_DIR = `${dest}`;
 
   process.env.USE_CMA_BINARY = 'true';
   const inputJson = path.join(__dirname, 'fixtures/messages/basic.input.json');
@@ -293,6 +293,6 @@ test.serial('generateCMASpawnArguments uses packaged python if no system python'
   const command = 'foobar';
   const result = await generateCMASpawnArguments(command);
   revert();
-  t.is(result[0], `${messageAdapterDir}/cma`);
+  t.is(result[0], `${messageAdapterDir}/cma_bin/cma`);
   t.deepEqual(result[1], [command]);
 });
