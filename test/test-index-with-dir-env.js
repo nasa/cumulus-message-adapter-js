@@ -53,6 +53,5 @@ test('callback returns error if CUMULUS_MESSAGE_ADAPTER_DIR is incorrect', async
 
   const inputEvent = { a: 1 };
 
-  await t.throwsAsync(cumulusMessageAdapter.runCumulusTask(businessLogic,
-    inputEvent, {}), null);
+  await t.throwsAsync(cumulusMessageAdapter.runCumulusTask(businessLogic, inputEvent, {}));
 });
