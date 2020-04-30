@@ -38,37 +38,42 @@ async function generateCMASpawnArguments(command) {
 /**
  * Invoke the cumulus-message-adapter
  *
- * @returns {Promise.<Object>} - the output of the message-adapter
+ * @returns {Promise<Object>} cumulusMessageAdapterObject - Returns an Object with a
+ * childprocess and a stderror buffer
+ * @returns {Object} cumulusMessageAdapterObject.cumulusMessageAdapter - A CMA childProcess Object
+ * @returns {string} cumulusMessageAdapterObject.errorObj -  A Object with the property
+ *                                                           'stderrBuffer' to make the encapsulated
+ *                                                           error event storage outside this method
  */
 async function invokeCumulusMessageAdapter() {
   const spawnArguments = await generateCMASpawnArguments('stream');
-  const errorObj = { stderr: '' };
+  const errorObj = { stderrBuffer: '' };
   try {
     // Would like to use sindresorhus's lib, however
     // https://github.com/sindresorhus/execa/issues/411
     // and related mean that pulling in the childProcess
     // is hacky.   Using node native for now, should revisit
     // the results #414 in the future.
-    const cumulusMessageAdapter = childProcess.spawn(...spawnArguments);
-    cumulusMessageAdapter.on('error', () => {});
-    cumulusMessageAdapter.stdin.setEncoding = 'utf8';
-    cumulusMessageAdapter.stdout.setEncoding = 'utf8';
-    cumulusMessageAdapter.stderr.setEncoding = 'utf8';
-    cumulusMessageAdapter.on('close', () => {
-      console.log(`CMA Exit Code: ${cumulusMessageAdapter.exitCode} `);
-      if (cumulusMessageAdapter.exitCode !== 0) {
-        console.log(`CMA Failure: ${errorObj.stderr}`);
+    const cmaProcess = childProcess.spawn(...spawnArguments);
+    cmaProcess.on('error', () => {});
+    cmaProcess.stdin.setEncoding = 'utf8';
+    cmaProcess.stdout.setEncoding = 'utf8';
+    cmaProcess.stderr.setEncoding = 'utf8';
+    cmaProcess.on('close', () => {
+      console.log(`CMA Exit Code: ${cmaProcess.exitCode} `);
+      if (cmaProcess.exitCode !== 0) {
+        console.log(`CMA Failure: ${errorObj.stderrBuffer}`);
       }
     });
-    cumulusMessageAdapter.stderr.on('data', (data) => {
-      errorObj.stderr += String(data);
+    cmaProcess.stderr.on('data', (data) => {
+      errorObj.stderrBuffer += String(data);
     });
-    return { cumulusMessageAdapter, errorObj };
+    return { cmaProcess, errorObj };
   }
   catch (error) {
     const msg = `CMA process failed (${error.shortMessage})\n
                  Trace: ${error.message}}\n\n\n
-                 STDERR: ${errorObj.stderr}`;
+                 STDERR: ${errorObj.stderrBuffer}`;
     throw new CumulusMessageAdapterExecutionError(msg);
   }
 }
@@ -215,7 +220,7 @@ async function getCmaOutput(readLine, errorObj) {
       }
     });
     readLine.on('close', () => {
-      reject(new CumulusMessageAdapterExecutionError(errorObj.stderr));
+      reject(new CumulusMessageAdapterExecutionError(errorObj.stderrBuffer));
     });
   });
 }
@@ -241,41 +246,41 @@ async function runCumulusTask(taskFunction, cumulusMessage,
     return functionReturn;
   }
   try {
-    const { cumulusMessageAdapter, errorObj } = await invokeCumulusMessageAdapter();
-    const cma = cumulusMessageAdapter;
+    const { cmaProcess, errorObj } = await invokeCumulusMessageAdapter();
+    const cmaStdin = cmaProcess.stdin;
     const rl = readline.createInterface({
-      input: cma.stdout
+      input: cmaProcess.stdout
     });
-    cma.stdin.write('loadAndUpdateRemoteEvent\n');
-    cma.stdin.write(JSON.stringify({
+    cmaStdin.write('loadAndUpdateRemoteEvent\n');
+    cmaStdin.write(JSON.stringify({
       event: cumulusMessage,
       context,
       schemas
     }));
-    cma.stdin.write('\n<EOC>\n');
+    cmaStdin.write('\n<EOC>\n');
 
     const loadAndUpdateRemoteEventOutput = await getCmaOutput(rl, errorObj);
     setCumulusEnvironment(loadAndUpdateRemoteEventOutput, context);
-    cma.stdin.write('loadNestedEvent\n');
-    cma.stdin.write(JSON.stringify({
+    cmaStdin.write('loadNestedEvent\n');
+    cmaStdin.write(JSON.stringify({
       event: loadAndUpdateRemoteEventOutput,
       schemas,
       context
     }));
-    cma.stdin.write('\n<EOC>\n');
+    cmaStdin.write('\n<EOC>\n');
     const loadNestedEventOutput = await getCmaOutput(rl, errorObj);
     const taskOutput = await invokePromisedTaskFunction(taskFunction,
       loadNestedEventOutput, context);
-    cma.stdin.write('createNextEvent\n');
-    cma.stdin.write(JSON.stringify({
+    cmaStdin.write('createNextEvent\n');
+    cmaStdin.write(JSON.stringify({
       event: loadAndUpdateRemoteEventOutput,
       handler_response: taskOutput,
       message_config: loadNestedEventOutput.messageConfig,
       schemas
     }));
-    cma.stdin.write('\n<EOC>\n');
+    cmaStdin.write('\n<EOC>\n');
     const createNextEventOutput = await getCmaOutput(rl, errorObj);
-    cma.stdin.write('\n<EXIT>\n');
+    cmaStdin.write('\n<EXIT>\n');
     return createNextEventOutput;
   }
   catch (error) {

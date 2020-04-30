@@ -26,7 +26,7 @@ const getAsyncOperationId = cmaRewire.__get__(
 // store test context data
 const testContext = {};
 
-test.before(async () => {
+test.before(async() => {
   const srcdir = __dirname;
   const destdir = path.join(__dirname, '../');
   // download and unzip the message adapter
@@ -81,20 +81,21 @@ test.serial('Execution is set when parameterized configuration is set', async(t)
 });
 
 
-test.serial('Correct cumulus message is returned when task returns a promise that resolves', async(t) => {
-  const businessLogicOutput = 42;
-  const businessLogic = () => Promise.resolve(businessLogicOutput);
+test.serial('Correct cumulus message is returned when task returns a promise that resolves',
+  async(t) => {
+    const businessLogicOutput = 42;
+    const businessLogic = () => Promise.resolve(businessLogicOutput);
 
-  const expectedOutput = clonedeep(testContext.outputEvent);
-  expectedOutput.payload = businessLogicOutput;
+    const expectedOutput = clonedeep(testContext.outputEvent);
+    expectedOutput.payload = businessLogicOutput;
 
-  const actual = await cumulusMessageAdapter.runCumulusTask(
-    businessLogic,
-    testContext.inputEvent,
-    {}
-  );
-  t.deepEqual(expectedOutput, actual);
-});
+    const actual = await cumulusMessageAdapter.runCumulusTask(
+      businessLogic,
+      testContext.inputEvent,
+      {}
+    );
+    t.deepEqual(expectedOutput, actual);
+  });
 
 test.serial('The businessLogic receives the correct arguments', async(t) => {
   const context = { b: 2 };
@@ -265,12 +266,13 @@ test.serial('GetParentArn returns a parent arn if the parentArn is in the cumulu
     'arn:aws:states:us-east-1:12345:execution:DiscoverGranules:8768aebb');
 });
 
-test.serial('GetParentArn returns a parent arn if the parentArn is in the CMA event cumulus_meta', (t) => {
-  const arn = getParentArn(testContext.paramInputEvent);
+test.serial('GetParentArn returns a parent arn if the parentArn is in the CMA event cumulus_meta',
+  (t) => {
+    const arn = getParentArn(testContext.paramInputEvent);
 
-  t.is(arn,
-    'arn:aws:states:us-east-1:12345:execution:DiscoverGranules:8768aebb');
-});
+    t.is(arn,
+      'arn:aws:states:us-east-1:12345:execution:DiscoverGranules:8768aebb');
+  });
 
 // eslint-disable-next-line max-len
 test.serial('GetAsyncOperationId returns an async operation id if the asyncOperationId is in the cumulus_meta', (t) => {
@@ -286,7 +288,7 @@ test.serial('GetAsyncOperationId returns an async operation id if the asyncOpera
   t.is(asyncOperationId, 'async-id-123');
 });
 
-test.serial('generateCMASpawnArguments uses packaged python if no system python', async (t) => {
+test.serial('generateCMASpawnArguments uses packaged python if no system python', async(t) => {
   const messageAdapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter';
   const generateCMASpawnArguments = cumulusMessageAdapter.__get__('generateCMASpawnArguments');
   const revert = cumulusMessageAdapter.__set__('lookpath', () => false);

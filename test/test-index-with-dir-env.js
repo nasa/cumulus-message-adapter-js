@@ -49,7 +49,7 @@ test('callback returns error if CUMULUS_MESSAGE_ADAPTER_DIR is incorrect', async
   process.env.CUMULUS_MESSAGE_ADAPTER_DIR = dir;
 
   const businessLogicOutput = 42;
-  const businessLogic = async () => businessLogicOutput;
+  const businessLogic = async() => businessLogicOutput;
 
   const inputEvent = { a: 1 };
 
