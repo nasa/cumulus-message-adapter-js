@@ -232,7 +232,7 @@ async function getCmaOutput(readLine, errorObj) {
  * @param {Object} cumulusMessage - either a full Cumulus Message or a Cumulus Remote Message
  * @param {Object} context - an AWS Lambda context
  * @param {string} schemas - Location of schema files, defaults to null.
- * @returns {Object} - The response from the call to createNextEvent or the taskFunction
+ * @returns {Promise<Object>} - The response from the call to createNextEvent or the taskFunction
  *                     depending on the CUMULUS_MESSAGE_ADAPTER_DISABLED environment variable
  */
 async function runCumulusTask(taskFunction, cumulusMessage,
