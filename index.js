@@ -40,7 +40,7 @@ async function generateCMASpawnArguments(command) {
  *
  * @returns {Promise<Object>} cumulusMessageAdapterObject - Returns an Object with a
  * childprocess and a stderror buffer
- * @returns {Object} cumulusMessageAdapterObject.cumulusMessageAdapter - A CMA childProcess Object
+ * @returns {Object} cumulusMessageAdapterObject.cmaProcess - A CMA childProcess Object
  * @returns {string} cumulusMessageAdapterObject.errorObj -  A Object with the property
  *                                                           'stderrBuffer' to make the encapsulated
  *                                                           error event storage outside this method
