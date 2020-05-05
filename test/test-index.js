@@ -1,5 +1,5 @@
 /* eslint-disable no-param-reassign */
-const test = require('ava').serial;
+const test = require('ava');
 
 const fs = require('fs-extra');
 const path = require('path');
@@ -33,7 +33,9 @@ test.before(async() => {
   const { src, dest } = await downloadCMA(srcdir, destdir);
   testContext.src = src;
   testContext.dest = dest;
+  process.env.CUMULUS_MESSAGE_ADAPTER_DIR = `${dest}`;
 
+  process.env.USE_CMA_BINARY = 'true';
   const inputJson = path.join(__dirname, 'fixtures/messages/basic.input.json');
   testContext.inputEvent = JSON.parse(fs.readFileSync(inputJson));
   const executionInputJson = path.join(__dirname, 'fixtures/messages/execution.input.json');
@@ -65,52 +67,37 @@ test.after.always('final cleanup', () => {
   ]);
 });
 
+test.afterEach(() => {
+  process.env.USE_CMA_BINARY = 'true';
+});
 
-test.cb('Execution is set when parameterized configuration is set', (t) => {
+test.serial('Execution is set when parameterized configuration is set', async(t) => {
   const businessLogic = () => Promise.resolve(process.env.EXECUTIONS);
   const expectedOutput = 'execution_value';
-  function callback(err, data) {
-    t.is(err, null);
-    t.deepEqual(data.payload, expectedOutput);
-    t.end();
-  }
-  return cumulusMessageAdapter.runCumulusTask(
-    businessLogic, testContext.paramInputEvent, {}, callback
+  const actual = await cumulusMessageAdapter.runCumulusTask(
+    businessLogic, testContext.paramInputEvent, {}
   );
-});
-
-test.cb('Execution is set when cumulus_meta has an execution value', (t) => {
-  const businessLogic = () => Promise.resolve(process.env.EXECUTIONS);
-  const expectedOutput = 'execution_value';
-  function callback(err, data) {
-    t.is(err, null);
-    t.deepEqual(data.payload, expectedOutput);
-    t.end();
-  }
-  return cumulusMessageAdapter.runCumulusTask(
-    businessLogic, testContext.paramInputEvent, {}, callback
-  );
+  t.is(expectedOutput, actual.payload);
 });
 
 
-test.cb('Correct cumulus message is returned when task returns a promise that resolves', (t) => {
-  const businessLogicOutput = 42;
-  const businessLogic = () => Promise.resolve(businessLogicOutput);
+test.serial('Correct cumulus message is returned when task returns a promise that resolves',
+  async(t) => {
+    const businessLogicOutput = 42;
+    const businessLogic = () => Promise.resolve(businessLogicOutput);
 
-  const expectedOutput = clonedeep(testContext.outputEvent);
-  expectedOutput.payload = businessLogicOutput;
+    const expectedOutput = clonedeep(testContext.outputEvent);
+    expectedOutput.payload = businessLogicOutput;
 
-  function callback(err, data) {
-    t.is(err, null);
-    t.deepEqual(data, expectedOutput);
-    t.end();
-  }
+    const actual = await cumulusMessageAdapter.runCumulusTask(
+      businessLogic,
+      testContext.inputEvent,
+      {}
+    );
+    t.deepEqual(expectedOutput, actual);
+  });
 
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.inputEvent, {}, callback);
-});
-
-
-test.cb('The businessLogic receives the correct arguments', (t) => {
+test.serial('The businessLogic receives the correct arguments', async(t) => {
   const context = { b: 2 };
 
   const expectedNestedEvent = {
@@ -124,12 +111,11 @@ test.cb('The businessLogic receives the correct arguments', (t) => {
     return 42;
   }
 
-  return cumulusMessageAdapter
-    .runCumulusTask(businessLogic, testContext.inputEvent, context, t.end);
+  await cumulusMessageAdapter
+    .runCumulusTask(businessLogic, testContext.inputEvent, context);
 });
 
-
-test.cb('A WorkflowError is returned properly', (t) => {
+test.serial('A WorkflowError is returned properly', async(t) => {
   const expectedOutput = clonedeep(testContext.outputEvent);
   expectedOutput.payload = null;
   expectedOutput.exception = 'SomeWorkflowError';
@@ -139,47 +125,38 @@ test.cb('A WorkflowError is returned properly', (t) => {
     error.name = 'SomeWorkflowError';
     throw error;
   }
-
-  function callback(err, data) {
-    t.is(err, null);
-    t.deepEqual(data, expectedOutput);
-    t.end();
-  }
-
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.inputEvent, {}, callback);
+  const actual = await cumulusMessageAdapter.runCumulusTask(
+    businessLogic,
+    testContext.inputEvent,
+    {}
+  );
+  t.deepEqual(expectedOutput, actual);
 });
 
-test.cb('A non-WorkflowError is raised', (t) => {
+test.serial('A non-WorkflowError is raised', async(t) => {
   function businessLogic() {
     throw new Error('oh snap');
   }
-
-  function callback(err, data) {
-    t.is(err.name, 'Error');
-    t.is(err.message, 'oh snap');
-    t.is(data, undefined);
-    t.end();
-  }
-
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.inputEvent, {}, callback);
+  await t.throwsAsync(cumulusMessageAdapter.runCumulusTask(
+    businessLogic,
+    testContext.inputEvent,
+    {}
+  ),
+  { message: 'oh snap', name: 'Error' });
 });
 
-test.cb('A promise returns an error', (t) => {
+test.serial('A promise returns an error', async(t) => {
   function businessLogic() {
     return Promise.reject(new Error('oh no'));
   }
 
-  function callback(err, data) {
-    t.is(err.name, 'Error');
-    t.is(err.message, 'oh no');
-    t.is(data, undefined);
-    t.end();
-  }
-
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.inputEvent, {}, callback);
+  await t.throwsAsync(cumulusMessageAdapter.runCumulusTask(businessLogic,
+    testContext.inputEvent, {}),
+  { name: 'Error', message: 'oh no' });
 });
 
-test.cb('A Promise WorkflowError is returned properly', (t) => {
+
+test.serial('A Promise WorkflowError is returned properly', async(t) => {
   const expectedOutput = clonedeep(testContext.outputEvent);
   expectedOutput.payload = null;
   expectedOutput.exception = 'SomeWorkflowError';
@@ -189,17 +166,12 @@ test.cb('A Promise WorkflowError is returned properly', (t) => {
     error.name = 'SomeWorkflowError';
     return Promise.reject(error);
   }
-
-  function callback(err, data) {
-    t.is(err, null);
-    t.deepEqual(data, expectedOutput);
-    t.end();
-  }
-
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, testContext.inputEvent, {}, callback);
+  const actual = await cumulusMessageAdapter.runCumulusTask(businessLogic,
+    testContext.inputEvent, {});
+  t.deepEqual(expectedOutput, actual);
 });
 
-test.cb('The task receives the cumulus_config property', (t) => {
+test.serial('The task receives the cumulus_config property', async(t) => {
   const context = { b: 2 };
 
   const inputEvent = clonedeep(testContext.inputEvent);
@@ -214,17 +186,18 @@ test.cb('The task receives the cumulus_config property', (t) => {
     return 42;
   }
 
-  return cumulusMessageAdapter
-    .runCumulusTask(businessLogic, inputEvent, context, t.end);
+  await cumulusMessageAdapter
+    .runCumulusTask(businessLogic, inputEvent, context);
 });
 
-test('GetMessageGranules returns empty array if no granules are found', (t) => {
+
+test.serial('GetMessageGranules returns empty array if no granules are found', (t) => {
   const messageGranules = getMessageGranules(testContext.inputEvent);
 
   t.deepEqual(messageGranules, []);
 });
 
-test('GetMessageGranules returns granules if they are in the payload', (t) => {
+test.serial('GetMessageGranules returns granules if they are in the payload', (t) => {
   const messageGranules = getMessageGranules(testContext.granuleInputJson);
 
   t.deepEqual(messageGranules, [
@@ -233,7 +206,7 @@ test('GetMessageGranules returns granules if they are in the payload', (t) => {
   ]);
 });
 
-test('GetMessageGranules returns granules if they are in the meta.input_granules', (t) => {
+test.serial('GetMessageGranules returns granules if they are in the meta.input_granules', (t) => {
   const messageGranules = getMessageGranules(testContext.inputGranuleInputJson);
 
   t.deepEqual(messageGranules, [
@@ -242,7 +215,7 @@ test('GetMessageGranules returns granules if they are in the meta.input_granules
   ]);
 });
 
-test('GetMessageGranules returns CMA granules if they are in the CMA event payload', (t) => {
+test.serial('GetMessageGranules returns CMA granules if they are in the CMA event payload', (t) => {
   const messageGranules = getMessageGranules(testContext.paramGranuleInputJson);
 
   t.deepEqual(messageGranules, [
@@ -251,7 +224,7 @@ test('GetMessageGranules returns CMA granules if they are in the CMA event paylo
   ]);
 });
 
-test('GetMessageGranules returns granules if they are in the CMA event meta.input_granules',
+test.serial('GetMessageGranules returns granules if they are in the CMA event meta.input_granules',
   (t) => {
     const messageGranules = getMessageGranules(testContext.paramInputGranuleInputJson);
 
@@ -261,7 +234,7 @@ test('GetMessageGranules returns granules if they are in the CMA event meta.inpu
     ]);
   });
 
-test('GetMessageGranules truncates granules over the specified limit', (t) => {
+test.serial('GetMessageGranules truncates granules over the specified limit', (t) => {
   const inputGranules = Array(5).fill().map((e, i) => ({ granuleId: `granule-${i}` }));
   const message = { payload: { granules: inputGranules } };
 
@@ -274,74 +247,54 @@ test('GetMessageGranules truncates granules over the specified limit', (t) => {
   ]);
 });
 
-test('GetStackName returns a stack name if the stack is in the meta', (t) => {
+test.serial('GetStackName returns a stack name if the stack is in the meta', (t) => {
   const stack = getStackName(testContext.inputEvent);
 
   t.is(stack, 'cumulus-stack');
 });
 
-test('GetStackName returns a stack name if the stack is in the CMA event meta', (t) => {
+test.serial('GetStackName returns a stack name if the stack is in the CMA event meta', (t) => {
   const stack = getStackName(testContext.paramInputEvent);
 
   t.is(stack, 'cumulus-stack');
 });
 
-test('GetParentArn returns a parent arn if the parentArn is in the cumulus_meta', (t) => {
+test.serial('GetParentArn returns a parent arn if the parentArn is in the cumulus_meta', (t) => {
   const arn = getParentArn(testContext.inputEvent);
 
   t.is(arn,
     'arn:aws:states:us-east-1:12345:execution:DiscoverGranules:8768aebb');
 });
 
-test('GetParentArn returns a parent arn if the parentArn is in the CMA event cumulus_meta', (t) => {
-  const arn = getParentArn(testContext.paramInputEvent);
+test.serial('GetParentArn returns a parent arn if the parentArn is in the CMA event cumulus_meta',
+  (t) => {
+    const arn = getParentArn(testContext.paramInputEvent);
 
-  t.is(arn,
-    'arn:aws:states:us-east-1:12345:execution:DiscoverGranules:8768aebb');
-});
+    t.is(arn,
+      'arn:aws:states:us-east-1:12345:execution:DiscoverGranules:8768aebb');
+  });
 
 // eslint-disable-next-line max-len
-test('GetAsyncOperationId returns an async operation id if the asyncOperationId is in the cumulus_meta', (t) => {
+test.serial('GetAsyncOperationId returns an async operation id if the asyncOperationId is in the cumulus_meta', (t) => {
   const asyncOperationId = getAsyncOperationId(testContext.inputEvent);
 
   t.is(asyncOperationId, 'async-id-123');
 });
 
 // eslint-disable-next-line max-len
-test('GetAsyncOperationId returns an async operation id if the asyncOperationId is in the CMA event cumulus_meta', (t) => {
+test.serial('GetAsyncOperationId returns an async operation id if the asyncOperationId is in the CMA event cumulus_meta', (t) => {
   const asyncOperationId = getAsyncOperationId(testContext.paramInputEvent);
 
   t.is(asyncOperationId, 'async-id-123');
 });
 
-test('callCumulusMessageAdapter throws a readable error on schema failure', async(t) => {
-  const callCumulusMessageAdapter = cumulusMessageAdapter.__get__('callCumulusMessageAdapter');
-  const result = await t.throwsAsync(() => callCumulusMessageAdapter('loadNestedEvent', {
-    event: testContext.inputEvent,
-    schemas: { input: './test/fixtures/schemas/error_schema/input.json' },
-    context: {}
-  }));
-  t.regex(result.message, new RegExp('Failed validating u?\'required\' in schema'));
-});
-
-test('generateCMASpawnArguments uses packaged python if no system python', async(t) => {
-  const messageAdapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter'
+test.serial('generateCMASpawnArguments uses packaged python if no system python', async(t) => {
+  const messageAdapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter';
   const generateCMASpawnArguments = cumulusMessageAdapter.__get__('generateCMASpawnArguments');
   const revert = cumulusMessageAdapter.__set__('lookpath', () => false);
   const command = 'foobar';
   const result = await generateCMASpawnArguments(command);
   revert();
-  t.is(result[0], `${messageAdapterDir}/cma`);
+  t.is(result[0], `${messageAdapterDir}/cma_bin/cma`);
   t.deepEqual(result[1], [command]);
-});
-
-test('generateCMASpawnArguments uses system python', async(t) => {
-  const messageAdapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter'
-  const generateCMASpawnArguments = cumulusMessageAdapter.__get__('generateCMASpawnArguments');
-  const revert = cumulusMessageAdapter.__set__('lookpath', () => '/foo/bar/python');
-  const command = 'foobar';
-  const result = await generateCMASpawnArguments(command);
-  revert();
-  t.is(result[0], '/foo/bar/python');
-  t.deepEqual(result[1], [messageAdapterDir, command]);
 });

@@ -1,7 +1,7 @@
 const test = require('ava');
 const cumulusMessageAdapter = require('../index');
 
-test.cb('CUMULUS_MESSAGE_ADAPTER_DISABLED="true" bypasses the message adapter', (t) => {
+test('CUMULUS_MESSAGE_ADAPTER_DISABLED="true" bypasses the message adapter', async(t) => {
   process.env.CUMULUS_MESSAGE_ADAPTER_DISABLED = 'true';
 
   const inputEvent = { a: 1 };
@@ -14,11 +14,6 @@ test.cb('CUMULUS_MESSAGE_ADAPTER_DISABLED="true" bypasses the message adapter', 
     return { result: 42 };
   }
 
-  function callback(err, data) {
-    t.is(err, null);
-    t.deepEqual(data, { result: 42 });
-    t.end();
-  }
-
-  return cumulusMessageAdapter.runCumulusTask(businessLogic, inputEvent, context, callback);
+  const actual = await cumulusMessageAdapter.runCumulusTask(businessLogic, inputEvent, context);
+  t.deepEqual(actual, { result: 42 });
 });
