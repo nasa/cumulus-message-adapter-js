@@ -3,25 +3,20 @@ const test = require('ava');
 
 const fs = require('fs-extra');
 const path = require('path');
+const proxyquire = require('proxyquire');
 const clonedeep = require('lodash.clonedeep');
-const rewire = require('rewire');
 
-const cumulusMessageAdapter = rewire('../index');
+const {
+  getMessageGranules,
+  getStackName,
+  getParentArn,
+  getAsyncOperationId
+} = require('../message');
+
+const cumulusMessageAdapter = proxyquire('../index', {
+  lookpath: () => false
+});
 const { downloadCMA } = require('./adapter');
-
-const cmaRewire = rewire('../index');
-const getMessageGranules = cmaRewire.__get__(
-  'getMessageGranules'
-);
-const getStackName = cmaRewire.__get__(
-  'getStackName'
-);
-const getParentArn = cmaRewire.__get__(
-  'getParentArn'
-);
-const getAsyncOperationId = cmaRewire.__get__(
-  'getAsyncOperationId'
-);
 
 // store test context data
 const testContext = {};
@@ -102,7 +97,7 @@ test.serial('The businessLogic receives the correct arguments', async(t) => {
 
   const expectedNestedEvent = {
     input: testContext.inputEvent.payload,
-    config: testContext.inputEvent.workflow_config[testContext.inputEvent.cumulus_meta.task]
+    config: testContext.inputEvent.task_config
   };
 
   function businessLogic(actualNestedEvent, actualContext) {
@@ -111,8 +106,12 @@ test.serial('The businessLogic receives the correct arguments', async(t) => {
     return 42;
   }
 
-  await cumulusMessageAdapter
-    .runCumulusTask(businessLogic, testContext.inputEvent, context);
+  try {
+    await cumulusMessageAdapter
+      .runCumulusTask(businessLogic, testContext.inputEvent, context);
+  } catch {
+    console.log('oh no it is horrible');
+  }
 });
 
 test.serial('A WorkflowError is returned properly', async(t) => {
@@ -290,11 +289,8 @@ test.serial('GetAsyncOperationId returns an async operation id if the asyncOpera
 
 test.serial('generateCMASpawnArguments uses packaged python if no system python', async(t) => {
   const messageAdapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter';
-  const generateCMASpawnArguments = cumulusMessageAdapter.__get__('generateCMASpawnArguments');
-  const revert = cumulusMessageAdapter.__set__('lookpath', () => false);
   const command = 'foobar';
-  const result = await generateCMASpawnArguments(command);
-  revert();
+  const result = await cumulusMessageAdapter.generateCMASpawnArguments(command);
   t.is(result[0], `${messageAdapterDir}/cma_bin/cma`);
   t.deepEqual(result[1], [command]);
 });

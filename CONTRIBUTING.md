@@ -8,6 +8,25 @@ We're excited you would like to contribute to Cumulus! Whether you're finding bu
 
 If you have any questions or ideas, or notice any problems or bugs, first [search open issues](https://github.com/nasa/cumulus-message-adapter-js/issues) to see if the issue has already been submitted. We may already be working on the issue. If you think your issue is new, you're welcome to [create a new issue](https://github.com/nasa/cumulus-message-adapter-js/issues/new).
 
+## Development
+
+### CMA binary
+
+Tests of this package require a binary distribution of the cumulus-message-adapter
+
+If your test environment is similar to the AWS Linux 2 runtime environment, then
+the test will pull the latest distribution of the [Cumulus Message
+Adapter](https://github.com/nasa/cumulus-message-adapter) with a pre-compiled
+binary built in for testing.
+
+If you're developing on a different platform/environment, you'll need to
+download the CMA and build a local `cumulus-message-adapter.zip`, then specify
+it's location in your `LOCAL_CMA_ZIP_FILE` environment variable:
+
+```bash
+export LOCAL_CMA_ZIP_FILE='/my/workspace/cma/cumulus-message-adapter.zip`
+```
+
 ## Pull Requests
 
 If you want to submit your own contributions, follow these steps;

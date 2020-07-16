@@ -1,2 +1,7 @@
 node_modules/
 /cumulus-message-adapter.zip
+/*.d.ts
+/*.js
+/*.map
+.vscode
+tsconfig.json
