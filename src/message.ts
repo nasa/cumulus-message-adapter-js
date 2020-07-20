@@ -1,5 +1,3 @@
-'use strict';
-
 import get from 'lodash.get';
 import { CumulusMessage } from '@cumulus/types/message';
 import { cumulusMessageWithGranulesInPayload } from './types';
