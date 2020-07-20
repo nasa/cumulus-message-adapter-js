@@ -231,7 +231,8 @@ async function runCumulusTask(
     cmaStdin.write('\n<EOC>\n');
     const loadAndUpdateRemoteEventOutput = await getCmaOutput(rl, errorObj);
     if (!iscumulusMessageWithGranulesInPayload(loadAndUpdateRemoteEventOutput)) {
-      throw new Error('loadAndUpdateRemoteEventOutput is bad');
+      throw new Error(`Invalid output typing recieved from
+      loadAndUpdateRemoteEvent ${JSON.stringify(loadAndUpdateRemoteEventOutput)}`);
     }
     setCumulusEnvironment(loadAndUpdateRemoteEventOutput, context);
     cmaStdin.write('loadNestedEvent\n');
@@ -243,7 +244,8 @@ async function runCumulusTask(
     cmaStdin.write('\n<EOC>\n');
     const loadNestedEventOutput = await getCmaOutput(rl, errorObj);
     if (!isLoadNestedEventInput(loadNestedEventOutput)) {
-      throw new Error('loadNestedEventOutput is not correct');
+      throw new Error(`Invalid output typing recieved from
+      loadNestedEvent ${JSON.stringify(loadNestedEventOutput)}`);
     }
     const taskOutput = await invokePromisedTaskFunction(taskFunction,
       loadNestedEventOutput, context);
@@ -258,7 +260,8 @@ async function runCumulusTask(
     const createNextEventOutput = await getCmaOutput(rl, errorObj);
     cmaStdin.write('\n<EXIT>\n');
     if (isLoadNestedEventInput(createNextEventOutput)) {
-      throw new Error('Oh the humanity');
+      throw new Error(`Invalid typing recieved from
+      createNextEventOutput: ${JSON.stringify(createNextEventOutput)}`);
     }
     return createNextEventOutput;
   } catch (error) {
