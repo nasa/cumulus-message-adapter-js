@@ -17,20 +17,20 @@ const GRANULE_LOG_LIMIT = 500;
  * @returns {Array<Object>} - An array of granule ids
  */
 export const getMessageGranules = (
-    message: cumulusMessageWithGranulesInPayload,
-    granuleLimit: number = GRANULE_LOG_LIMIT
+  message: cumulusMessageWithGranulesInPayload,
+  granuleLimit: number = GRANULE_LOG_LIMIT
 ) => {
-    const granules = message?.payload?.granules
+  const granules = message?.payload?.granules
         || get(message, 'meta.input_granules')
         || get(message, 'cma.event.payload.granules')
         || get(message, 'cma.event.meta.input_granules');
 
-    if (granules) {
-        return granules.slice(0, granuleLimit)
-            .map((granule: { granuleId: number }) => granule.granuleId);
-    }
+  if (granules) {
+    return granules.slice(0, granuleLimit)
+      .map((granule: { granuleId: number }) => granule.granuleId);
+  }
 
-    return [];
+  return [];
 };
 
 /**
@@ -39,10 +39,8 @@ export const getMessageGranules = (
  * @param {Object} message - A cumulus event message.
  * @returns {string} - The cumulus stack name.
  */
-export const getStackName = (message: CumulusMessage) : string => {
-    return get(message, 'meta.stack')
+export const getStackName = (message: CumulusMessage) : string => get(message, 'meta.stack')
       || get(message, 'cma.event.meta.stack');
-}
 
 /**
  * Gets parent arn from execution message.
@@ -50,11 +48,12 @@ export const getStackName = (message: CumulusMessage) : string => {
  * @param {Object} message - An execution message.
  * @returns {string} - the parent execution.
  */
-export const getParentArn = (message: CumulusMessage): string =>
-{
-    return get(message, 'cumulus_meta.parentExecutionArn')
-      || get(message, 'cma.event.cumulus_meta.parentExecutionArn');
-}
+export const getParentArn = (message: CumulusMessage): string => get(
+  message, 'cumulus_meta.parentExecutionArn'
+)
+|| get(
+  message, 'cma.event.cumulus_meta.parentExecutionArn'
+);
 
 /**
 * Get current execution name from Cumulus message.
@@ -62,11 +61,12 @@ export const getParentArn = (message: CumulusMessage): string =>
 * @param {Object} message - Cumulus message.
 * @returns {string} current execution name.
 */
-export const getExecutions = (message: CumulusMessage): string =>
-{
- return get(message, 'cumulus_meta.execution_name')
-   || get(message, 'cma.event.cumulus_meta.execution_name');
-}
+export const getExecutions = (message: CumulusMessage): string => get(
+  message, 'cumulus_meta.execution_name'
+)
+|| get(
+  message, 'cma.event.cumulus_meta.execution_name'
+);
 
 /**
  * Get current async operation id from Cumulus message.
@@ -74,9 +74,9 @@ export const getExecutions = (message: CumulusMessage): string =>
  * @param {Object} message - Cumulus message.
  * @returns {string} asyncOperationId or null
  */
-export const getAsyncOperationId = (message: CumulusMessage) : string => {
-    return get(message, 'cumulus_meta.asyncOperationId')
-      || get(message, 'cma.event.cumulus_meta.asyncOperationId');
-}
-
-
+export const getAsyncOperationId = (message: CumulusMessage): string => get(
+  message, 'cumulus_meta.asyncOperationId'
+)
+|| get(
+  message, 'cma.event.cumulus_meta.asyncOperationId'
+);

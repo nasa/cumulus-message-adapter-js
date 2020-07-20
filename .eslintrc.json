@@ -6,6 +6,26 @@
     "eslint-plugin-jsdoc"
   ],
   "parser": "babel-eslint",
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "parser": "@typescript-eslint/parser",
+      "plugins": [
+        "@typescript-eslint"
+      ],
+      "extends": ["airbnb-typescript/lib/shared"],
+      "rules": {
+        "@typescript-eslint/no-implied-eval": "off",
+        "@typescript-eslint/no-throw-literal": "off",
+        "comma-dangle": ["warn", "never"],
+        "import/no-extraneous-dependencies": "off",
+        "import/prefer-default-export": "off",
+        "lines-between-class-members": "off",
+        "lodash/prefer-lodash-typecheck": "off",
+        "node/no-unsupported-features/es-syntax": "off"
+      }
+    }
+  ],
   "env": {
     "node": true,
     "mocha": true

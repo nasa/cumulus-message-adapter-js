@@ -105,13 +105,8 @@ test.serial('The businessLogic receives the correct arguments', async(t) => {
     t.deepEqual(actualContext, context);
     return 42;
   }
-
-  try {
-    await cumulusMessageAdapter
-      .runCumulusTask(businessLogic, testContext.inputEvent, context);
-  } catch {
-    console.log('oh no it is horrible');
-  }
+  await cumulusMessageAdapter
+    .runCumulusTask(businessLogic, testContext.inputEvent, context);
 });
 
 test.serial('A WorkflowError is returned properly', async(t) => {
