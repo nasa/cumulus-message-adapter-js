@@ -36,7 +36,7 @@ class CumulusMessageAdapterExecutionError extends Error {
  * @param {string} command - the action to be performed by the message-adapter
  * @returns {Promise.<Array>} - Returns arguments used to spawn the CMA
  */
-async function generateCMASpawnArguments(command: string): Promise<[string, string[]]> {
+export async function generateCMASpawnArguments(command: string): Promise<[string, string[]]> {
   const adapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR ?? './cumulus-message-adapter';
   const systemPython = await lookpath('python');
   if (systemPython && process.env.USE_CMA_BINARY !== 'true') {
@@ -57,7 +57,7 @@ async function generateCMASpawnArguments(command: string): Promise<[string, stri
  *                                                           'stderrBuffer' to make the encapsulated
  *                                                           error event storage outside this method
  */
-async function invokeCumulusMessageAdapter(): Promise<invokeCumulusMessageAdapterType> {
+export async function invokeCumulusMessageAdapter(): Promise<invokeCumulusMessageAdapterType> {
   const spawnArguments = await generateCMASpawnArguments('stream');
   const errorObj = { stderrBuffer: '' };
   try {
@@ -210,7 +210,7 @@ function invokePromisedTaskFunction(
  * @returns {Promise<Object>} - The response from the call to createNextEvent or the taskFunction
  *                     depending on the CUMULUS_MESSAGE_ADAPTER_DISABLED environment variable
  */
-async function runCumulusTask(
+export async function runCumulusTask(
   taskFunction: (msg: loadNestedEventInput, context: Context) => unknown,
   cumulusMessage: CumulusMessage | CumulusRemoteMessage,
   context: Context,
@@ -274,8 +274,3 @@ async function runCumulusTask(
     throw error;
   }
 }
-
-
-exports.runCumulusTask = runCumulusTask;
-exports.invokeCumulusMessageAdapter = invokeCumulusMessageAdapter;
-exports.generateCMASpawnArguments = generateCMASpawnArguments;
