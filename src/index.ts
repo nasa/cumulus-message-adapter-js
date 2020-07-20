@@ -187,7 +187,7 @@ async function getCmaOutput(
  * @returns {Promise} - the result of invoking the task function
  */
 function invokePromisedTaskFunction(
-  taskFunction: (msg: loadNestedEventInput, context: Context) => unknown,
+  taskFunction: (msg: loadNestedEventInput, context: Context) => Promise<unknown>,
   cumulusMessage: loadNestedEventInput,
   context: Context
 ) {
