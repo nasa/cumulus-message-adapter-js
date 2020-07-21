@@ -99,8 +99,12 @@ function safeSetEnv(VARNAME: string, value: string): void {
 }
 
 // eslint-disable-next-line require-jsdoc
-function IsCumulusMessageWithGranulesInPayload(
-  message: unknown
+function IscumulusMessageWithGranulesInPayload(
+  message:
+  CumulusMessage |
+  CumulusRemoteMessage |
+  cumulusMessageWithGranulesInPayload |
+  loadNestedEventInput
 ): message is cumulusMessageWithGranulesInPayload {
   return (
     (message as cumulusMessageWithGranulesInPayload)?.payload !== undefined
@@ -112,7 +116,7 @@ function IsCumulusMessageWithGranulesInPayload(
 
 // eslint-disable-next-line require-jsdoc
 function isLoadNestedEventInput(
-  message: unknown
+  message: cumulusMessageWithGranulesInPayload | loadNestedEventInput | CumulusRemoteMessage
 ): message is loadNestedEventInput {
   return (
     (message as loadNestedEventInput).input !== undefined
@@ -153,7 +157,7 @@ function setCumulusEnvironment(
 async function getCmaOutput(
   readLine: readline.ReadLine,
   errorObj: cumulusMessageAdapterError
-): Promise<unknown> {
+): Promise<cumulusMessageWithGranulesInPayload | loadNestedEventInput | CumulusRemoteMessage> {
   return new Promise((resolve, reject) => {
     let buffer = '';
     readLine.resume();
@@ -207,7 +211,7 @@ function invokePromisedTaskFunction(
  *                     depending on the CUMULUS_MESSAGE_ADAPTER_DISABLED environment variable
  */
 export async function runCumulusTask(
-  taskFunction: (msg: loadNestedEventInput, context: Context) => Promise<unknown>,
+  taskFunction: (msg: loadNestedEventInput, context: Context) => unknown,
   cumulusMessage: CumulusMessage | CumulusRemoteMessage,
   context: Context,
   schemas: string | null = null
@@ -226,7 +230,7 @@ export async function runCumulusTask(
     }));
     cmaStdin.write('\n<EOC>\n');
     const loadAndUpdateRemoteEventOutput = await getCmaOutput(rl, errorObj);
-    if (!IsCumulusMessageWithGranulesInPayload(loadAndUpdateRemoteEventOutput)) {
+    if (!IscumulusMessageWithGranulesInPayload(loadAndUpdateRemoteEventOutput)) {
       throw new Error(`Invalid output typing recieved from
       loadAndUpdateRemoteEvent ${JSON.stringify(loadAndUpdateRemoteEventOutput)}`);
     }
