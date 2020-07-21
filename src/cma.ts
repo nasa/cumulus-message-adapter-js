@@ -98,7 +98,7 @@ export async function invokeCumulusMessageAdapter(): Promise<InvokeCumulusMessag
  * @param {string | undefined} value - value to set variable to if not undefined
  * @returns {undefined} - none
  */
-function safeSetEnv(VARNAME: string, value: string | undefined): void {
+function safeSetEnv(VARNAME: string, value?: string): void {
   if (value !== undefined) process.env[VARNAME] = value;
 }
 
