@@ -156,28 +156,6 @@ async function getCmaOutput(
 }
 
 /**
- * Invoke the task function and wrap the result as a Promise
- *
- * @param {Function} TaskFunction - the task function to be invoked
- * @param {Object} cumulusMessage - a full Cumulus message
- * @param {Object} context - the Lambda context
- * @returns {Promise} - the result of invoking the task function
- */
-function invokePromisedTaskFunction(
-  TaskFunction: (msg: LoadNestedEventInput, context: Context) => Promise<unknown>,
-  cumulusMessage: LoadNestedEventInput,
-  context: Context
-) {
-  return new Promise((resolve, reject) => {
-    try {
-      resolve(TaskFunction(cumulusMessage, context));
-    } catch (err) {
-      reject(err);
-    }
-  });
-}
-
-/**
  * Build a nested Cumulus event and pass it to a tasks's business function
  *
  * @param {Function} TaskFunction - the function containing the business logic of the task
@@ -226,8 +204,7 @@ export async function runCumulusTask(
       throw new Error(`Invalid output typing recieved from
       loadNestedEvent ${JSON.stringify(loadNestedEventOutput)}`);
     }
-    const taskOutput = await invokePromisedTaskFunction(TaskFunction,
-      loadNestedEventOutput, context);
+    const taskOutput = await TaskFunction(loadNestedEventOutput, context);
     cmaStdin.write('createNextEvent\n');
     cmaStdin.write(JSON.stringify({
       event: loadAndUpdateRemoteEventOutput,
