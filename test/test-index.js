@@ -47,9 +47,6 @@ test.before(async() => {
   const paramGranuleInputJson = path.join(__dirname,
     'fixtures/messages/parameterized.granule.input.json');
   testContext.paramGranuleInputJson = JSON.parse(fs.readFileSync(paramGranuleInputJson));
-  const paramInputGranuleInputJson = path.join(__dirname,
-    'fixtures/messages/parameterized.input_granule.input.json');
-  testContext.paramInputGranuleInputJson = JSON.parse(fs.readFileSync(paramInputGranuleInputJson));
 });
 
 test.after.always('final cleanup', () => {
@@ -205,25 +202,6 @@ test.serial('GetMessageGranules returns granules if they are in the meta.input_g
     'MOD09GQ.A2016358.h13v04.007.2017'
   ]);
 });
-
-test.serial('GetMessageGranules returns CMA granules if they are in the CMA event payload', (t) => {
-  const messageGranules = getMessageGranules(testContext.paramGranuleInputJson);
-
-  t.deepEqual(messageGranules, [
-    'MOD09GQ.A2016358.h13v04.006.2016360104606',
-    'MOD09GQ.A2016358.h13v04.007.2017'
-  ]);
-});
-
-test.serial('GetMessageGranules returns granules if they are in the CMA event meta.input_granules',
-  (t) => {
-    const messageGranules = getMessageGranules(testContext.paramInputGranuleInputJson);
-
-    t.deepEqual(messageGranules, [
-      'MOD09GQ.A2016358.h13v04.006.2016360104606',
-      'MOD09GQ.A2016358.h13v04.007.2017'
-    ]);
-  });
 
 test.serial('GetMessageGranules truncates granules over the specified limit', (t) => {
   const inputGranules = Array(5).fill().map((e, i) => ({ granuleId: `granule-${i}` }));
