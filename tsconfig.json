@@ -13,14 +13,9 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "allowJs": true,
-    "outDir": "./",
-    "typeRoots": [
-      "node_modules/@types"
-    ]
+    "outDir": "./dist"
   },
 
   "include": ["src"],
-  "exclude": []
 }
 
