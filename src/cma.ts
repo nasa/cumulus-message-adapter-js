@@ -244,7 +244,7 @@ export async function runCumulusTask(
     }
     return createNextEventOutput;
   } catch (error) {
-    if (error.name && error.name.includes('WorkflowError') && (!isCMAMessage(cumulusMessage))) {
+    if (error?.name?.includes('WorkflowError') && (!isCMAMessage(cumulusMessage))) {
       const returnObject = cumulusMessage;
       returnObject.payload = null;
       returnObject.exception = error.name;
