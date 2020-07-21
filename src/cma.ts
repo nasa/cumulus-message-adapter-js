@@ -6,25 +6,26 @@ import * as readline from 'readline';
 import childProcess from 'child_process';
 
 import {
+  getAsyncOperationId,
   getExecutions,
   getMessageGranules,
-  getStackName,
   getParentArn,
-  getAsyncOperationId
+  getStackName
 } from './message';
 
 import {
+  CMAMessage,
   CumulusMessageAdapterError,
-  InvokeCumulusMessageAdapterResult,
-  LoadNestedEventInput,
   CumulusMessageWithPayload,
-  CMAMessage
+  CumulusTaskFunction,
+  InvokeCumulusMessageAdapterResult,
+  LoadNestedEventInput
 } from './types';
 
 import {
+  isCMAMessage,
   isCumulusMessageWithPayload,
-  isLoadNestedEventInput,
-  isCMAMessage
+  isLoadNestedEventInput
 } from './typeGuards';
 
 /**
@@ -167,7 +168,7 @@ async function getCmaOutput(
  * @returns {Promise<Object>} - The response from the call to createNextEvent
  */
 export async function runCumulusTask(
-  TaskFunction: (msg: LoadNestedEventInput, context: Context) => Promise<unknown>,
+  TaskFunction: CumulusTaskFunction,
   cumulusMessage: CumulusMessage | CumulusRemoteMessage | CMAMessage,
   context: Context,
   schemas: string | null = null

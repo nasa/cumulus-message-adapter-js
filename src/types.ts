@@ -30,4 +30,4 @@ export interface CMAMessage {
   replace?: ReplaceConfig
 }
 
-export type TaskFunction = (...args: [LoadNestedEventInput, Context]) => undefined;
+export type CumulusTaskFunction = (...args: [LoadNestedEventInput, Context]) => undefined;
