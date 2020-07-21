@@ -99,7 +99,7 @@ function safeSetEnv(VARNAME: string, value: string): void {
 }
 
 // eslint-disable-next-line require-jsdoc
-function IscumulusMessageWithGranulesInPayload(
+function isCumulusMessageWithGranulesInPayload(
   message:
   CumulusMessage |
   CumulusRemoteMessage |
@@ -230,7 +230,7 @@ export async function runCumulusTask(
     }));
     cmaStdin.write('\n<EOC>\n');
     const loadAndUpdateRemoteEventOutput = await getCmaOutput(rl, errorObj);
-    if (!IscumulusMessageWithGranulesInPayload(loadAndUpdateRemoteEventOutput)) {
+    if (!isCumulusMessageWithGranulesInPayload(loadAndUpdateRemoteEventOutput)) {
       throw new Error(`Invalid output typing recieved from
       loadAndUpdateRemoteEvent ${JSON.stringify(loadAndUpdateRemoteEventOutput)}`);
     }
