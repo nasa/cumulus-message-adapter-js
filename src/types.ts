@@ -4,7 +4,7 @@ import { ChildProcessWithoutNullStreams } from 'child_process';
 
 export interface CumulusMessageAdapterError { stderrBuffer: string }
 
-export interface InvokeCumulusMessageAdapterType {
+export interface InvokeCumulusMessageAdapterResult {
   cmaProcess: ChildProcessWithoutNullStreams,
   errorObj: CumulusMessageAdapterError
 }

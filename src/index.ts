@@ -14,7 +14,7 @@ import {
 
 import {
   CumulusMessageAdapterError,
-  InvokeCumulusMessageAdapterType,
+  InvokeCumulusMessageAdapterResult,
   LoadNestedEventInput,
   CumulusMessageWithPayload,
   CMAMessage
@@ -57,7 +57,7 @@ export async function generateCMASpawnArguments(command: string): Promise<[strin
  *                                                           'stderrBuffer' to make the encapsulated
  *                                                           error event storage outside this method
  */
-export async function invokeCumulusMessageAdapter(): Promise<InvokeCumulusMessageAdapterType> {
+export async function invokeCumulusMessageAdapter(): Promise<InvokeCumulusMessageAdapterResult> {
   const spawnArguments = await generateCMASpawnArguments('stream');
   const errorObj = { stderrBuffer: '' };
   try {
