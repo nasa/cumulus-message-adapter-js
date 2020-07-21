@@ -75,7 +75,6 @@ test.serial('Execution is set when parameterized configuration is set', async(t)
   t.is(expectedOutput, actual.payload);
 });
 
-
 test.serial('Correct cumulus message is returned when task returns a promise that resolves',
   async(t) => {
     const businessLogicOutput = 42;
@@ -149,7 +148,6 @@ test.serial('A promise returns an error', async(t) => {
   { name: 'Error', message: 'oh no' });
 });
 
-
 test.serial('A Promise WorkflowError is returned properly', async(t) => {
   const expectedOutput = clonedeep(testContext.outputEvent);
   expectedOutput.payload = null;
@@ -183,7 +181,6 @@ test.serial('The task receives the cumulus_config property', async(t) => {
   await cumulusMessageAdapter
     .runCumulusTask(businessLogic, inputEvent, context);
 });
-
 
 test.serial('GetMessageGranules returns empty array if no granules are found', (t) => {
   const messageGranules = getMessageGranules(testContext.inputEvent);
@@ -247,12 +244,6 @@ test.serial('GetStackName returns a stack name if the stack is in the meta', (t)
   t.is(stack, 'cumulus-stack');
 });
 
-test.serial('GetStackName returns a stack name if the stack is in the CMA event meta', (t) => {
-  const stack = getStackName(testContext.paramInputEvent);
-
-  t.is(stack, 'cumulus-stack');
-});
-
 test.serial('GetParentArn returns a parent arn if the parentArn is in the cumulus_meta', (t) => {
   const arn = getParentArn(testContext.inputEvent);
 
@@ -260,24 +251,9 @@ test.serial('GetParentArn returns a parent arn if the parentArn is in the cumulu
     'arn:aws:states:us-east-1:12345:execution:DiscoverGranules:8768aebb');
 });
 
-test.serial('GetParentArn returns a parent arn if the parentArn is in the CMA event cumulus_meta',
-  (t) => {
-    const arn = getParentArn(testContext.paramInputEvent);
-
-    t.is(arn,
-      'arn:aws:states:us-east-1:12345:execution:DiscoverGranules:8768aebb');
-  });
-
 // eslint-disable-next-line max-len
 test.serial('GetAsyncOperationId returns an async operation id if the asyncOperationId is in the cumulus_meta', (t) => {
   const asyncOperationId = getAsyncOperationId(testContext.inputEvent);
-
-  t.is(asyncOperationId, 'async-id-123');
-});
-
-// eslint-disable-next-line max-len
-test.serial('GetAsyncOperationId returns an async operation id if the asyncOperationId is in the CMA event cumulus_meta', (t) => {
-  const asyncOperationId = getAsyncOperationId(testContext.paramInputEvent);
 
   t.is(asyncOperationId, 'async-id-123');
 });

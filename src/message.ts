@@ -1,9 +1,7 @@
 import get from 'lodash.get';
-import { CumulusMessage } from '@cumulus/types/message';
 import { CumulusMessageWithPayload } from './types';
 
 const GRANULE_LOG_LIMIT = 500;
-
 /**
  * Get granules from execution message.
  *   Uses the order of precedence as defined by the cumulus/common/message
@@ -35,36 +33,31 @@ export const getMessageGranules = (
  * Get the stackname pulled from the meta of the event.
  *
  * @param {Object} message - A cumulus event message.
- * @returns {string} - The cumulus stack name.
+ * @returns {string | undefined} - The cumulus stack name.
  */
-export const getStackName = (message: CumulusMessage) : string => get(message, 'meta.stack')
-      || get(message, 'cma.event.meta.stack');
+export const getStackName = (
+  message: CumulusMessageWithPayload
+): string | undefined => message?.meta?.stack;
 
 /**
  * Gets parent arn from execution message.
  *
  * @param {Object} message - An execution message.
- * @returns {string} - the parent execution.
+ * @returns {string | undefined} - the parent execution.
  */
-export const getParentArn = (message: CumulusMessage): string => get(
-  message, 'cumulus_meta.parentExecutionArn'
-)
-|| get(
-  message, 'cma.event.cumulus_meta.parentExecutionArn'
-);
+export const getParentArn = (
+  message: CumulusMessageWithPayload
+): string | undefined => message?.cumulus_meta?.parentExecutionArn;
 
 /**
 * Get current execution name from Cumulus message.
 *
 * @param {Object} message - Cumulus message.
-* @returns {string} current execution name.
+* @returns {string | undefined} current execution name.
 */
-export const getExecutions = (message: CumulusMessage): string => get(
-  message, 'cumulus_meta.execution_name'
-)
-|| get(
-  message, 'cma.event.cumulus_meta.execution_name'
-);
+export const getExecutions = (
+  message: CumulusMessageWithPayload
+): string | undefined => message?.cumulus_meta?.execution_name;
 
 /**
  * Get current async operation id from Cumulus message.
@@ -72,9 +65,6 @@ export const getExecutions = (message: CumulusMessage): string => get(
  * @param {Object} message - Cumulus message.
  * @returns {string} asyncOperationId or null
  */
-export const getAsyncOperationId = (message: CumulusMessage): string => get(
-  message, 'cumulus_meta.asyncOperationId'
-)
-|| get(
-  message, 'cma.event.cumulus_meta.asyncOperationId'
-);
+export const getAsyncOperationId = (
+  message: CumulusMessageWithPayload
+): string | undefined => message?.cumulus_meta?.asyncOperationId;

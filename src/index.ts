@@ -16,7 +16,8 @@ import {
   CumulusMessageAdapterError,
   InvokeCumulusMessageAdapterType,
   LoadNestedEventInput,
-  CumulusMessageWithPayload
+  CumulusMessageWithPayload,
+  CMAMessage
 } from './types';
 
 /**
@@ -45,7 +46,6 @@ export async function generateCMASpawnArguments(command: string): Promise<[strin
   // If there is no system python, attempt use of pre-packaged CMA binary
   return [`${adapterDir}/cma_bin/cma`, [command]];
 }
-
 
 /**
  * Invoke the cumulus-message-adapter
@@ -86,15 +86,14 @@ export async function invokeCumulusMessageAdapter(): Promise<InvokeCumulusMessag
   }
 }
 
-
 /**
  * Conditionally set environment variable when targeted value is not undefined.
  *
  * @param {string} VARNAME - environment variable name
- * @param {string} value - value to set variable to if not undefined
+ * @param {string | undefined} value - value to set variable to if not undefined
  * @returns {undefined} - none
  */
-function safeSetEnv(VARNAME: string, value: string): void {
+function safeSetEnv(VARNAME: string, value: string | undefined): void {
   if (value !== undefined) process.env[VARNAME] = value;
 }
 
@@ -124,6 +123,12 @@ function isLoadNestedEventInput(
   );
 }
 
+// eslint-disable-next-line require-jsdoc
+function isCMAMessage(
+  message: CumulusRemoteMessage | CumulusMessage | CMAMessage
+): message is CMAMessage {
+  return ((message as CMAMessage).cma !== undefined);
+}
 
 /**
  * Set environment variables to be used in logging based on the Cumulus event
@@ -204,15 +209,16 @@ function invokePromisedTaskFunction(
  * Build a nested Cumulus event and pass it to a tasks's business function
  *
  * @param {Function} TaskFunction - the function containing the business logic of the task
- * @param {Object} cumulusMessage - either a full Cumulus Message or a Cumulus Remote Message
+ * @param {Object} cumulusMessage - either a full Cumulus Message or a Cumulus Remote Messag
+ *                                  or a workflow configured CMAMessage
+ *                                  containing a Cumulus Message in it's event
  * @param {Object} context - an AWS Lambda context
  * @param {string} schemas - Location of schema files, defaults to null.
- * @returns {Promise<Object>} - The response from the call to createNextEvent or the TaskFunction
- *                     depending on the CUMULUS_MESSAGE_ADAPTER_DISABLED environment variable
+ * @returns {Promise<Object>} - The response from the call to createNextEvent
  */
 export async function runCumulusTask(
   TaskFunction: (msg: LoadNestedEventInput, context: Context) => Promise<unknown>,
-  cumulusMessage: CumulusMessage | CumulusRemoteMessage,
+  cumulusMessage: CumulusMessage | CumulusRemoteMessage | CMAMessage,
   context: Context,
   schemas: string | null = null
 ): Promise<CumulusMessage | CumulusRemoteMessage> {
@@ -265,7 +271,7 @@ export async function runCumulusTask(
     }
     return createNextEventOutput;
   } catch (error) {
-    if (error.name && error.name.includes('WorkflowError')) {
+    if (error.name && error.name.includes('WorkflowError') && (!isCMAMessage(cumulusMessage))) {
       const returnObject = cumulusMessage;
       returnObject.payload = null;
       returnObject.exception = error.name;
