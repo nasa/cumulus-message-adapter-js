@@ -10,22 +10,17 @@ const GRANULE_LOG_LIMIT = 500;
  * @param {Object} message - a Cumulus message
  * @param {integer} granuleLimit - number of granules to limit the log to
  * including, to avoid environment variable truncation
- * @returns {Array<Object>} - An array of granule ids
+ * @returns {Array<string>} - An array of granule ids
  */
 export const getMessageGranules = (
   message: CumulusMessageWithPayload,
   granuleLimit: number = GRANULE_LOG_LIMIT
-) => {
-  const granules = message?.payload?.granules
-        || get(message, 'meta.input_granules')
-        || get(message, 'cma.event.payload.granules')
-        || get(message, 'cma.event.meta.input_granules');
-
+): string[] => {
+  const granules = message?.payload?.granules || message?.meta?.input_granules;
   if (granules) {
     return granules.slice(0, granuleLimit)
-      .map((granule: { granuleId: number }) => granule.granuleId);
+      .map((granule: { granuleId: string }) => granule.granuleId);
   }
-
   return [];
 };
 

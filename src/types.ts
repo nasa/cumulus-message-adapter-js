@@ -16,10 +16,11 @@ export interface LoadNestedEventInput {
 }
 export interface CumulusMessageWithPayload extends CumulusMessage {
   payload: {
-    granules?: { granuleId: number }[] | undefined
+    granules?: { granuleId: string }[] | undefined
   }
   meta: {
-    stack?: string
+    stack?: string,
+    input_granules: { granuleId: string }[] | undefined
   }
 }
 export interface CMAMessage {
