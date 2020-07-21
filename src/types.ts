@@ -2,22 +2,22 @@ import { CumulusMessage } from '@cumulus/types/message';
 import { Context } from 'aws-lambda';
 import { ChildProcessWithoutNullStreams } from 'child_process';
 
-export type cumulusMessageAdapterError = { stderrBuffer: string };
+export type CumulusMessageAdapterError = { stderrBuffer: string };
 
-export type invokeCumulusMessageAdapterType = {
+export type InvokeCumulusMessageAdapterType = {
   cmaProcess: ChildProcessWithoutNullStreams,
-  errorObj: cumulusMessageAdapterError
+  errorObj: CumulusMessageAdapterError
 };
 
-export type loadNestedEventInput = {
+export type LoadNestedEventInput = {
   input: unknown,
   config: unknown,
   messageConfig?: unknown
 };
 
-export type taskFunction = (...args: [loadNestedEventInput, Context]) => undefined;
+export type TaskFunction = (...args: [LoadNestedEventInput, Context]) => undefined;
 
-export interface cumulusMessageWithGranulesInPayload extends CumulusMessage {
+export interface CumulusMessageWithGranulesInPayload extends CumulusMessage {
   payload: {
     granules?: { granuleId: number }[] | undefined
   }
