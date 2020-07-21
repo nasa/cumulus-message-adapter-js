@@ -1,6 +1,6 @@
-import get from 'lodash.get';
+ import get from 'lodash.get';
 import { CumulusMessage } from '@cumulus/types/message';
-import { CumulusMessageWithGranulesInPayload } from './types';
+import { CumulusMessageWithPayload } from './types';
 
 const GRANULE_LOG_LIMIT = 500;
 
@@ -15,7 +15,7 @@ const GRANULE_LOG_LIMIT = 500;
  * @returns {Array<Object>} - An array of granule ids
  */
 export const getMessageGranules = (
-  message: CumulusMessageWithGranulesInPayload,
+  message: CumulusMessageWithPayload,
   granuleLimit: number = GRANULE_LOG_LIMIT
 ) => {
   const granules = message?.payload?.granules

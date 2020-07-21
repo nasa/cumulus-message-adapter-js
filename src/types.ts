@@ -14,7 +14,7 @@ export interface LoadNestedEventInput {
   config: unknown,
   messageConfig?: unknown
 }
-export interface CumulusMessageWithGranulesInPayload extends CumulusMessage {
+export interface CumulusMessageWithPayload extends CumulusMessage {
   payload: {
     granules?: { granuleId: number }[] | undefined
   }

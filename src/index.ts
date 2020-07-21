@@ -16,7 +16,7 @@ import {
   CumulusMessageAdapterError,
   InvokeCumulusMessageAdapterType,
   LoadNestedEventInput,
-  CumulusMessageWithGranulesInPayload
+  CumulusMessageWithPayload
 } from './types';
 
 /**
@@ -99,15 +99,15 @@ function safeSetEnv(VARNAME: string, value: string): void {
 }
 
 // eslint-disable-next-line require-jsdoc
-function isCumulusMessageWithGranulesInPayload(
+function isCumulusMessageWithPayload(
   message:
   CumulusMessage |
   CumulusRemoteMessage |
-  CumulusMessageWithGranulesInPayload |
+  CumulusMessageWithPayload |
   LoadNestedEventInput
-): message is CumulusMessageWithGranulesInPayload {
+): message is CumulusMessageWithPayload {
   return (
-    (message as CumulusMessageWithGranulesInPayload)?.payload !== undefined
+    (message as CumulusMessageWithPayload)?.payload !== undefined
     && (message as CumulusRemoteMessage)?.replace === undefined
     && (message as LoadNestedEventInput)?.input === undefined
     && (message as LoadNestedEventInput)?.config === undefined
@@ -116,7 +116,7 @@ function isCumulusMessageWithGranulesInPayload(
 
 // eslint-disable-next-line require-jsdoc
 function isLoadNestedEventInput(
-  message: CumulusMessageWithGranulesInPayload | LoadNestedEventInput | CumulusRemoteMessage
+  message: CumulusMessageWithPayload | LoadNestedEventInput | CumulusRemoteMessage
 ): message is LoadNestedEventInput {
   return (
     (message as LoadNestedEventInput).input !== undefined
@@ -134,7 +134,7 @@ function isLoadNestedEventInput(
  * @returns {undefined} - no return values
  */
 function setCumulusEnvironment(
-  cumulusMessage: CumulusMessageWithGranulesInPayload,
+  cumulusMessage: CumulusMessageWithPayload,
   context: Context
 ): void {
   safeSetEnv('EXECUTIONS', getExecutions(cumulusMessage));
@@ -157,7 +157,7 @@ function setCumulusEnvironment(
 async function getCmaOutput(
   readLine: readline.ReadLine,
   errorObj: CumulusMessageAdapterError
-): Promise<CumulusMessageWithGranulesInPayload | LoadNestedEventInput | CumulusRemoteMessage> {
+): Promise<CumulusMessageWithPayload | LoadNestedEventInput | CumulusRemoteMessage> {
   return new Promise((resolve, reject) => {
     let buffer = '';
     readLine.resume();
@@ -230,7 +230,7 @@ export async function runCumulusTask(
     }));
     cmaStdin.write('\n<EOC>\n');
     const loadAndUpdateRemoteEventOutput = await getCmaOutput(rl, errorObj);
-    if (!isCumulusMessageWithGranulesInPayload(loadAndUpdateRemoteEventOutput)) {
+    if (!isCumulusMessageWithPayload(loadAndUpdateRemoteEventOutput)) {
       throw new Error(`Invalid output typing recieved from
       loadAndUpdateRemoteEvent ${JSON.stringify(loadAndUpdateRemoteEventOutput)}`);
     }
