@@ -248,7 +248,7 @@ export async function runCumulusTask(
       const returnObject = cumulusMessage;
       returnObject.payload = null;
       returnObject.exception = error.name;
-      return { ...cumulusMessage, payload: null, exception: error.name };
+      return { ...returnObject, payload: null, exception: error.name };
     }
     throw error;
   }
