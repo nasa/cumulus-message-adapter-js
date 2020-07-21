@@ -211,7 +211,7 @@ function invokePromisedTaskFunction(
  *                     depending on the CUMULUS_MESSAGE_ADAPTER_DISABLED environment variable
  */
 export async function runCumulusTask(
-  taskFunction: (msg: loadNestedEventInput, context: Context) => unknown,
+  taskFunction: (msg: loadNestedEventInput, context: Context) => Promise<unknown>,
   cumulusMessage: CumulusMessage | CumulusRemoteMessage,
   context: Context,
   schemas: string | null = null
