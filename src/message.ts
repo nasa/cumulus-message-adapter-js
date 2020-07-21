@@ -1,4 +1,3 @@
-import get from 'lodash.get';
 import { CumulusMessageWithPayload } from './types';
 
 const GRANULE_LOG_LIMIT = 500;

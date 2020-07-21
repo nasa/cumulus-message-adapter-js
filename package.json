@@ -71,7 +71,6 @@
   },
   "dependencies": {
     "execa": "^4.0.0",
-    "lodash.get": "^4.4.2",
     "lookpath": "1.0.3"
   }
 }
