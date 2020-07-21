@@ -54,8 +54,8 @@ All of the automated tests for this project need to pass before your submission 
 
 Example of a good commit message:
 
-```
-Improve contributing guidelines. Fixes #10
+```text
+e contributing guidelines. Fixes #10
 
 Improve contributing docs and consolidate them in the standard location https://help.github.com/articles/setting-guidelines-for-repository-contributors/
 ```

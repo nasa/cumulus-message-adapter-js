@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v1.3.0]
+
+### BREAKING CHANGES
+
+- **CUMULUS-2065**
+  - Removed CUMULUS_MESSAGE_ADAPTER_DISABLED environmental flag, and associated
+    behaviors from `runCumulusTask`
+
+### Changed
+
+- **CUMULUS-2065**
+
+  - Migrated package to TypeScript, moved all source to /src/*.ts
+
 ## [v1.2.0]
 
 ### BREAKING CHANGES
