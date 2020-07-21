@@ -17,7 +17,7 @@
     "access": "public"
   },
   "engines": {
-    "node": ">=12.9.0"
+    "node": ">=12.18.0"
   },
   "directories": {
     "test": "tests"

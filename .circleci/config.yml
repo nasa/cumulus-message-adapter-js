@@ -2,14 +2,14 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:12.9
+      - image: circleci/node:12.18.0
     working_directory: ~/cumulus-message-adapter
     steps:
       - checkout
 
       - restore_cache:
           keys:
-            - dependencies-{{ checksum "package.json" }}
+            - dependencies-{ { checksum "package.json" }}
 
       - run:
           name: Run tests
@@ -26,7 +26,7 @@ jobs:
 
   publish:
     docker:
-      - image: circleci/node:12.9
+      - image: circleci/node:12.18.0
     working_directory: ~/cumulus-message-adapter
     steps:
       - checkout
