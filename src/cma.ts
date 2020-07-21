@@ -74,10 +74,8 @@ export async function invokeCumulusMessageAdapter(): Promise<InvokeCumulusMessag
     cmaProcess.stdout.setEncoding('utf8');
     cmaProcess.stderr.setEncoding('utf8');
     cmaProcess.on('close', () => {
-      // eslint-disable-next-line no-console
       console.log(`CMA Exit Code: ${cmaProcess.exitCode} `);
       if (cmaProcess.exitCode !== 0) {
-        // eslint-disable-next-line no-console
         console.log(`CMA Failure: ${errorObj.stderrBuffer}`);
       }
     });

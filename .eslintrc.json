@@ -84,7 +84,7 @@
       }
     ],
     "no-useless-escape": "off",
-    "no-console": "warn",
+    "no-console": "off",
     "spaced-comment": "off",
     "require-yield": "off",
     "prefer-template": "warn",
