@@ -3,7 +3,7 @@ const clonedeep = require('lodash.clonedeep');
 const fs = require('fs-extra');
 const path = require('path');
 
-const cumulusMessageAdapter = require('../index');
+const cumulusMessageAdapter = require('../dist/index');
 const { downloadCMA } = require('./adapter');
 
 // store test context data

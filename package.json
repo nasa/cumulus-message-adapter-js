@@ -2,7 +2,7 @@
   "name": "@cumulus/cumulus-message-adapter-js",
   "version": "1.2.0",
   "description": "Cumulus message adapter",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
     "test": "ava",
     "lint": "eslint test src/**/*.ts",

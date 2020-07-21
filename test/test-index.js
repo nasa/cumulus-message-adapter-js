@@ -11,9 +11,9 @@ const {
   getStackName,
   getParentArn,
   getAsyncOperationId
-} = require('../message');
+} = require('../dist/message');
 
-const cumulusMessageAdapter = proxyquire('../index', {
+const cumulusMessageAdapter = proxyquire('../dist/index', {
   lookpath: () => false
 });
 const { downloadCMA } = require('./adapter');
