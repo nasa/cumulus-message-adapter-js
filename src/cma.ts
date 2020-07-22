@@ -1,6 +1,5 @@
 import { Context } from 'aws-lambda';
 import { CumulusMessage, CumulusRemoteMessage } from '@cumulus/types/message';
-import cloneDeep from 'lodash.clonedeep';
 import { lookpath } from 'lookpath';
 import * as readline from 'readline';
 import childProcess from 'child_process';
@@ -173,7 +172,6 @@ export async function runCumulusTask(
   context: Context,
   schemas: string | null = null
 ): Promise<CumulusMessage | CumulusRemoteMessage> {
-  const clonedCumulusMessage = cloneDeep(cumulusMessage);
   try {
     const { cmaProcess, errorObj } = await invokeCumulusMessageAdapter();
     const cmaStdin = cmaProcess.stdin;
@@ -182,7 +180,7 @@ export async function runCumulusTask(
     });
     cmaStdin.write('loadAndUpdateRemoteEvent\n');
     cmaStdin.write(JSON.stringify({
-      event: clonedCumulusMessage,
+      event: cumulusMessage,
       context,
       schemas
     }));
@@ -222,10 +220,8 @@ export async function runCumulusTask(
     }
     return createNextEventOutput;
   } catch (error) {
-    if (error?.name?.includes('WorkflowError') && (!isCMAMessage(clonedCumulusMessage))) {
-      clonedCumulusMessage.payload = null;
-      clonedCumulusMessage.exception = error.name;
-      return { ...clonedCumulusMessage, payload: null, exception: error.name };
+    if (error?.name?.includes('WorkflowError') && (!isCMAMessage(cumulusMessage))) {
+      return { ...cumulusMessage, payload: null, exception: error.name };
     }
     throw error;
   }
