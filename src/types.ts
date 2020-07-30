@@ -1,5 +1,4 @@
 import { CumulusMessage, ReplaceConfig } from '@cumulus/types/message';
-import { Context } from 'aws-lambda';
 import { ChildProcessWithoutNullStreams } from 'child_process';
 
 export interface CumulusMessageAdapterError { stderrBuffer: string }
@@ -29,5 +28,3 @@ export interface CMAMessage {
   }
   replace?: ReplaceConfig
 }
-
-export type CumulusTaskFunction = (...args: [LoadNestedEventInput, Context]) => unknown;

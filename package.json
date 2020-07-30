@@ -4,6 +4,7 @@
   "description": "Cumulus message adapter",
   "main": "dist/index.js",
   "files": [
+    "node_modules",
     "dist"
   ],
   "scripts": {
@@ -39,8 +40,6 @@
   },
   "homepage": "https://github.com/nasa/cumulus-message-adapter-js#readme",
   "devDependencies": {
-    "@cumulus/types": "1.24.0-alpha.0",
-    "@types/aws-lambda": "^8.10.58",
     "@types/node": "^12.12.6",
     "@types/sinon": "^9.0.4",
     "@typescript-eslint/eslint-plugin": "^2.29.0",
@@ -68,6 +67,8 @@
     "typescript": "^3.9.0"
   },
   "dependencies": {
+    "@types/aws-lambda": "^8.10.58",
+    "@cumulus/types": "2.0.1",
     "execa": "^4.0.0",
     "lookpath": "1.0.3"
   }

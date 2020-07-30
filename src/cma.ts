@@ -16,7 +16,6 @@ import {
   CMAMessage,
   CumulusMessageAdapterError,
   CumulusMessageWithPayload,
-  CumulusTaskFunction,
   InvokeCumulusMessageAdapterResult,
   LoadNestedEventInput
 } from './types';
@@ -167,7 +166,7 @@ async function getCmaOutput(
  * @returns {Promise<Object>} - The response from the call to createNextEvent
  */
 export async function runCumulusTask(
-  TaskFunction: CumulusTaskFunction,
+  TaskFunction: Function,
   cumulusMessage: CumulusMessage | CumulusRemoteMessage | CMAMessage,
   context: Context,
   schemas: string | null = null
