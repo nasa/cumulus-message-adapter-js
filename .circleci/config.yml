@@ -40,9 +40,7 @@ jobs:
           name: Publish to NPM
           command: |
             echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-            ls -l ./
-            ls -l ./dist
-            npm publish -dry-run || echo 'npm publishing failed'
+            npm publish || echo 'npm publishing failed'
 
 workflows:
   version: 2
@@ -52,6 +50,6 @@ workflows:
       - publish:
           requires:
             - build
-#          filters:
-#            branches:
-#              only: master
+         filters:
+           branches:
+              only: master
