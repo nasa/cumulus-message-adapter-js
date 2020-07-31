@@ -6,11 +6,9 @@ jobs:
     working_directory: ~/cumulus-message-adapter
     steps:
       - checkout
-
       - restore_cache:
           keys:
             - dependencies-{ { checksum "package.json" }}
-
       - run:
           name: Run tests
           command: |
@@ -26,7 +24,6 @@ jobs:
           paths:
             - ./node_modules
           key: dependencies-{{ checksum "package.json" }}
-
   publish:
     docker:
       - image: circleci/node:12.18.0
@@ -34,7 +31,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-        at: ./
+          at: ./
       - run:
           name: Publish release
           command: |
