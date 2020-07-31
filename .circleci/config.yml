@@ -18,7 +18,10 @@ jobs:
             npm run build
             npm run lint
             npm run test
-
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - dist
       - save_cache:
           paths:
             - ./node_modules
@@ -30,6 +33,8 @@ jobs:
     working_directory: ~/cumulus-message-adapter
     steps:
       - checkout
+      - attach_workspace:
+        at: ./
       - run:
           name: Publish release
           command: |
@@ -38,7 +43,7 @@ jobs:
           name: Publish to NPM
           command: |
             echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-            npm publish || echo 'npm publishing failed'
+            npm publish -dry-run || echo 'npm publishing failed'
 
 workflows:
   version: 2
@@ -48,6 +53,6 @@ workflows:
       - publish:
           requires:
             - build
-          filters:
-            branches:
-              only: master
+#          filters:
+#            branches:
+#              only: master
