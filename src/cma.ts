@@ -1,19 +1,38 @@
-'use strict';
+import { Context } from 'aws-lambda';
+import { CumulusMessage, CumulusRemoteMessage } from '@cumulus/types/message';
+import { lookpath } from 'lookpath';
+import * as readline from 'readline';
+import childProcess from 'child_process';
 
-const childProcess = require('child_process');
-const get = require('lodash.get');
-const { lookpath } = require('lookpath');
-const readline = require('readline');
+import {
+  getAsyncOperationId,
+  getExecutions,
+  getMessageGranules,
+  getParentArn,
+  getStackName
+} from './message';
 
-const GRANULE_LOG_LIMIT = 500;
+import {
+  CMAMessage,
+  CumulusMessageAdapterError,
+  CumulusMessageWithPayload,
+  InvokeCumulusMessageAdapterResult,
+  LoadNestedEventInput
+} from './types';
+
+import {
+  isCMAMessage,
+  isCumulusMessageWithPayload,
+  isLoadNestedEventInput
+} from './typeGuards';
 
 /**
  * An error to be thrown when invokation of the cumulus-message-adapter fails
  */
 class CumulusMessageAdapterExecutionError extends Error {
   // eslint-disable-next-line require-jsdoc
-  constructor(message, fileName, lineNumber) {
-    super(message, fileName, lineNumber);
+  constructor(message: string) {
+    super(message);
     this.name = 'CumulusMessageAdapterExecutionError';
   }
 }
@@ -24,8 +43,8 @@ class CumulusMessageAdapterExecutionError extends Error {
  * @param {string} command - the action to be performed by the message-adapter
  * @returns {Promise.<Array>} - Returns arguments used to spawn the CMA
  */
-async function generateCMASpawnArguments(command) {
-  const adapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter';
+export async function generateCMASpawnArguments(command: string): Promise<[string, string[]]> {
+  const adapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR ?? './cumulus-message-adapter';
   const systemPython = await lookpath('python');
   if (systemPython && process.env.USE_CMA_BINARY !== 'true') {
     return [systemPython, [`${adapterDir}`, command]];
@@ -34,31 +53,25 @@ async function generateCMASpawnArguments(command) {
   return [`${adapterDir}/cma_bin/cma`, [command]];
 }
 
-
 /**
  * Invoke the cumulus-message-adapter
  *
  * @returns {Promise<Object>} cumulusMessageAdapterObject - Returns an Object with a
  * childprocess and a stderror buffer
  * @returns {Object} cumulusMessageAdapterObject.cmaProcess - A CMA childProcess Object
- * @returns {string} cumulusMessageAdapterObject.errorObj -  A Object with the property
+ * @returns {Object} cumulusMessageAdapterObject.errorObj -  A Object with the property
  *                                                           'stderrBuffer' to make the encapsulated
  *                                                           error event storage outside this method
  */
-async function invokeCumulusMessageAdapter() {
+export async function invokeCumulusMessageAdapter(): Promise<InvokeCumulusMessageAdapterResult> {
   const spawnArguments = await generateCMASpawnArguments('stream');
   const errorObj = { stderrBuffer: '' };
   try {
-    // Would like to use sindresorhus's lib, however
-    // https://github.com/sindresorhus/execa/issues/411
-    // and related mean that pulling in the childProcess
-    // is hacky.   Using node native for now, should revisit
-    // the results #414 in the future.
     const cmaProcess = childProcess.spawn(...spawnArguments);
-    cmaProcess.on('error', () => {});
-    cmaProcess.stdin.setEncoding = 'utf8';
-    cmaProcess.stdout.setEncoding = 'utf8';
-    cmaProcess.stderr.setEncoding = 'utf8';
+    cmaProcess.on('error', () => { });
+    cmaProcess.stdin.setDefaultEncoding('utf8');
+    cmaProcess.stdout.setEncoding('utf8');
+    cmaProcess.stderr.setEncoding('utf8');
     cmaProcess.on('close', () => {
       console.log(`CMA Exit Code: ${cmaProcess.exitCode} `);
       if (cmaProcess.exitCode !== 0) {
@@ -69,8 +82,7 @@ async function invokeCumulusMessageAdapter() {
       errorObj.stderrBuffer += String(data);
     });
     return { cmaProcess, errorObj };
-  }
-  catch (error) {
+  } catch (error) {
     const msg = `CMA process failed (${error.shortMessage})\n
                  Trace: ${error.message}}\n\n\n
                  STDERR: ${errorObj.stderrBuffer}`;
@@ -79,101 +91,13 @@ async function invokeCumulusMessageAdapter() {
 }
 
 /**
- * Invoke the task function and wrap the result as a Promise
- *
- * @param {Function} taskFunction - the task function to be invoked
- * @param {Object} cumulusMessage - a full Cumulus message
- * @param {Object} context - the Lambda context
- * @returns {Promise} - the result of invoking the task function
- */
-function invokePromisedTaskFunction(taskFunction, cumulusMessage, context) {
-  return new Promise((resolve, reject) => {
-    try {
-      resolve(taskFunction(cumulusMessage, context));
-    }
-    catch (err) {
-      reject(err);
-    }
-  });
-}
-
-/**
- * Get granules from execution message.
- *   Uses the order of precedence as defined by the cumulus/common/message
- *   description.
- *
- * @param {Object} message - An execution message
- * @param {integer} granuleLimit - number of granules to limit the log to
- * including, to avoid environment variable truncation
- * @returns {Array<Object>} - An array of granule ids
- */
-function getMessageGranules(message, granuleLimit = GRANULE_LOG_LIMIT) {
-  const granules = get(message, 'payload.granules')
-    || get(message, 'meta.input_granules')
-    || get(message, 'cma.event.payload.granules')
-    || get(message, 'cma.event.meta.input_granules');
-
-  if (granules) {
-    return granules.slice(0, granuleLimit)
-      .map((granule) => granule.granuleId);
-  }
-
-  return [];
-}
-
-/**
- * Get the stackname pulled from the meta of the event.
- *
- * @param {Object} message - A cumulus event message.
- * @returns {string} - The cumulus stack name.
- */
-function getStackName(message) {
-  return get(message, 'meta.stack')
-    || get(message, 'cma.event.meta.stack');
-}
-
-/**
- * Gets parent arn from execution message.
- *
- * @param {Object} message - An execution message.
- * @returns {string} - the parent execution.
- */
-function getParentArn(message) {
-  return get(message, 'cumulus_meta.parentExecutionArn')
-    || get(message, 'cma.event.cumulus_meta.parentExecutionArn');
-}
-
-/**
- * Get current execution name from Cumulus message.
- *
- * @param {Object} message - Cumulus message.
- * @returns {string} current execution name.
- */
-function getExecutions(message) {
-  return get(message, 'cumulus_meta.execution_name')
-    || get(message, 'cma.event.cumulus_meta.execution_name');
-}
-
-/**
- * Get current async operation id from Cumulus message.
- *
- * @param {Object} message - Cumulus message.
- * @returns {string} asyncOperationId or null
- */
-function getAsyncOperationId(message) {
-  return get(message, 'cumulus_meta.asyncOperationId')
-    || get(message, 'cma.event.cumulus_meta.asyncOperationId');
-}
-
-
-/**
  * Conditionally set environment variable when targeted value is not undefined.
  *
  * @param {string} VARNAME - environment variable name
- * @param {string} value - value to set variable to if not undefined
+ * @param {string | undefined} value - value to set variable to if not undefined
  * @returns {undefined} - none
  */
-function safeSetEnv(VARNAME, value) {
+function safeSetEnv(VARNAME: string, value?: string): void {
   if (value !== undefined) process.env[VARNAME] = value;
 }
 
@@ -185,7 +109,10 @@ function safeSetEnv(VARNAME, value) {
  * @param {Object} context - lambda context object.
  * @returns {undefined} - no return values
  */
-function setCumulusEnvironment(cumulusMessage, context) {
+function setCumulusEnvironment(
+  cumulusMessage: CumulusMessageWithPayload,
+  context: Context
+): void {
   safeSetEnv('EXECUTIONS', getExecutions(cumulusMessage));
   safeSetEnv('SENDER', context.functionName);
   safeSetEnv('TASKVERSION', context.functionVersion);
@@ -203,19 +130,21 @@ function setCumulusEnvironment(cumulusMessage, context) {
  * @returns {Promise<Object>} - Promise that resolves to a parsed JSON object
  *                              from the CMA output
  */
-async function getCmaOutput(readLine, errorObj) {
+async function getCmaOutput(
+  readLine: readline.ReadLine,
+  errorObj: CumulusMessageAdapterError
+): Promise<CumulusMessageWithPayload | LoadNestedEventInput | CumulusRemoteMessage> {
   return new Promise((resolve, reject) => {
     let buffer = '';
     readLine.resume();
-    readLine.on('line', (input) => {
+    readLine.on('line', (input: string) => {
       if (input.endsWith('<EOC>')) {
         readLine.pause();
         readLine.removeAllListeners('line');
         const endInput = input.replace('<EOC>', '');
         buffer += endInput;
         resolve(JSON.parse(buffer));
-      }
-      else {
+      } else {
         buffer += input;
       }
     });
@@ -228,23 +157,20 @@ async function getCmaOutput(readLine, errorObj) {
 /**
  * Build a nested Cumulus event and pass it to a tasks's business function
  *
- * @param {Function} taskFunction - the function containing the business logic of the task
- * @param {Object} cumulusMessage - either a full Cumulus Message or a Cumulus Remote Message
+ * @param {Function} TaskFunction - the function containing the business logic of the task
+ * @param {Object} cumulusMessage - either a full Cumulus Message or a Cumulus Remote Messag
+ *                                  or a workflow configured CMAMessage
+ *                                  containing a Cumulus Message in it's event
  * @param {Object} context - an AWS Lambda context
  * @param {string} schemas - Location of schema files, defaults to null.
- * @returns {Promise<Object>} - The response from the call to createNextEvent or the taskFunction
- *                     depending on the CUMULUS_MESSAGE_ADAPTER_DISABLED environment variable
+ * @returns {Promise<Object>} - The response from the call to createNextEvent
  */
-async function runCumulusTask(taskFunction, cumulusMessage,
-  context, schemas = null) {
-  if (process.env.CUMULUS_MESSAGE_ADAPTER_DISABLED === 'true') {
-    const functionReturn = await invokePromisedTaskFunction(
-      taskFunction,
-      cumulusMessage,
-      context
-    );
-    return functionReturn;
-  }
+export async function runCumulusTask(
+  TaskFunction: Function,
+  cumulusMessage: CumulusMessage | CumulusRemoteMessage | CMAMessage,
+  context: Context,
+  schemas: string | null = null
+): Promise<CumulusMessage | CumulusRemoteMessage> {
   try {
     const { cmaProcess, errorObj } = await invokeCumulusMessageAdapter();
     const cmaStdin = cmaProcess.stdin;
@@ -258,8 +184,11 @@ async function runCumulusTask(taskFunction, cumulusMessage,
       schemas
     }));
     cmaStdin.write('\n<EOC>\n');
-
     const loadAndUpdateRemoteEventOutput = await getCmaOutput(rl, errorObj);
+    if (!isCumulusMessageWithPayload(loadAndUpdateRemoteEventOutput)) {
+      throw new Error(`Invalid output typing recieved from
+      loadAndUpdateRemoteEvent ${JSON.stringify(loadAndUpdateRemoteEventOutput)}`);
+    }
     setCumulusEnvironment(loadAndUpdateRemoteEventOutput, context);
     cmaStdin.write('loadNestedEvent\n');
     cmaStdin.write(JSON.stringify({
@@ -269,8 +198,11 @@ async function runCumulusTask(taskFunction, cumulusMessage,
     }));
     cmaStdin.write('\n<EOC>\n');
     const loadNestedEventOutput = await getCmaOutput(rl, errorObj);
-    const taskOutput = await invokePromisedTaskFunction(taskFunction,
-      loadNestedEventOutput, context);
+    if (!isLoadNestedEventInput(loadNestedEventOutput)) {
+      throw new Error(`Invalid output typing recieved from
+      loadNestedEvent ${JSON.stringify(loadNestedEventOutput)}`);
+    }
+    const taskOutput = await TaskFunction(loadNestedEventOutput, context);
     cmaStdin.write('createNextEvent\n');
     cmaStdin.write(JSON.stringify({
       event: loadAndUpdateRemoteEventOutput,
@@ -281,15 +213,15 @@ async function runCumulusTask(taskFunction, cumulusMessage,
     cmaStdin.write('\n<EOC>\n');
     const createNextEventOutput = await getCmaOutput(rl, errorObj);
     cmaStdin.write('\n<EXIT>\n');
+    if (isLoadNestedEventInput(createNextEventOutput)) {
+      throw new Error(`Invalid typing recieved from
+      createNextEventOutput: ${JSON.stringify(createNextEventOutput)}`);
+    }
     return createNextEventOutput;
-  }
-  catch (error) {
-    if (error.name && error.name.includes('WorkflowError')) {
+  } catch (error) {
+    if (error?.name?.includes('WorkflowError') && (!isCMAMessage(cumulusMessage))) {
       return { ...cumulusMessage, payload: null, exception: error.name };
     }
     throw error;
   }
 }
-
-exports.runCumulusTask = runCumulusTask;
-exports.invokeCumulusMessageAdapter = invokeCumulusMessageAdapter;

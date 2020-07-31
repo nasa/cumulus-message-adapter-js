@@ -3,25 +3,13 @@ const test = require('ava');
 
 const fs = require('fs-extra');
 const path = require('path');
+const proxyquire = require('proxyquire');
 const clonedeep = require('lodash.clonedeep');
-const rewire = require('rewire');
 
-const cumulusMessageAdapter = rewire('../index');
+const cumulusMessageAdapter = proxyquire('../dist/index', {
+  lookpath: () => false
+});
 const { downloadCMA } = require('./adapter');
-
-const cmaRewire = rewire('../index');
-const getMessageGranules = cmaRewire.__get__(
-  'getMessageGranules'
-);
-const getStackName = cmaRewire.__get__(
-  'getStackName'
-);
-const getParentArn = cmaRewire.__get__(
-  'getParentArn'
-);
-const getAsyncOperationId = cmaRewire.__get__(
-  'getAsyncOperationId'
-);
 
 // store test context data
 const testContext = {};
@@ -52,9 +40,6 @@ test.before(async() => {
   const paramGranuleInputJson = path.join(__dirname,
     'fixtures/messages/parameterized.granule.input.json');
   testContext.paramGranuleInputJson = JSON.parse(fs.readFileSync(paramGranuleInputJson));
-  const paramInputGranuleInputJson = path.join(__dirname,
-    'fixtures/messages/parameterized.input_granule.input.json');
-  testContext.paramInputGranuleInputJson = JSON.parse(fs.readFileSync(paramInputGranuleInputJson));
 });
 
 test.after.always('final cleanup', () => {
@@ -80,7 +65,6 @@ test.serial('Execution is set when parameterized configuration is set', async(t)
   t.is(expectedOutput, actual.payload);
 });
 
-
 test.serial('Correct cumulus message is returned when task returns a promise that resolves',
   async(t) => {
     const businessLogicOutput = 42;
@@ -102,7 +86,7 @@ test.serial('The businessLogic receives the correct arguments', async(t) => {
 
   const expectedNestedEvent = {
     input: testContext.inputEvent.payload,
-    config: testContext.inputEvent.workflow_config[testContext.inputEvent.cumulus_meta.task]
+    config: testContext.inputEvent.task_config
   };
 
   function businessLogic(actualNestedEvent, actualContext) {
@@ -110,7 +94,6 @@ test.serial('The businessLogic receives the correct arguments', async(t) => {
     t.deepEqual(actualContext, context);
     return 42;
   }
-
   await cumulusMessageAdapter
     .runCumulusTask(businessLogic, testContext.inputEvent, context);
 });
@@ -155,7 +138,6 @@ test.serial('A promise returns an error', async(t) => {
   { name: 'Error', message: 'oh no' });
 });
 
-
 test.serial('A Promise WorkflowError is returned properly', async(t) => {
   const expectedOutput = clonedeep(testContext.outputEvent);
   expectedOutput.payload = null;
@@ -190,111 +172,10 @@ test.serial('The task receives the cumulus_config property', async(t) => {
     .runCumulusTask(businessLogic, inputEvent, context);
 });
 
-
-test.serial('GetMessageGranules returns empty array if no granules are found', (t) => {
-  const messageGranules = getMessageGranules(testContext.inputEvent);
-
-  t.deepEqual(messageGranules, []);
-});
-
-test.serial('GetMessageGranules returns granules if they are in the payload', (t) => {
-  const messageGranules = getMessageGranules(testContext.granuleInputJson);
-
-  t.deepEqual(messageGranules, [
-    'MOD09GQ.A2016358.h13v04.006.2016360104606',
-    'MOD09GQ.A2016358.h13v04.007.2017'
-  ]);
-});
-
-test.serial('GetMessageGranules returns granules if they are in the meta.input_granules', (t) => {
-  const messageGranules = getMessageGranules(testContext.inputGranuleInputJson);
-
-  t.deepEqual(messageGranules, [
-    'MOD09GQ.A2016358.h13v04.006.2016360104606',
-    'MOD09GQ.A2016358.h13v04.007.2017'
-  ]);
-});
-
-test.serial('GetMessageGranules returns CMA granules if they are in the CMA event payload', (t) => {
-  const messageGranules = getMessageGranules(testContext.paramGranuleInputJson);
-
-  t.deepEqual(messageGranules, [
-    'MOD09GQ.A2016358.h13v04.006.2016360104606',
-    'MOD09GQ.A2016358.h13v04.007.2017'
-  ]);
-});
-
-test.serial('GetMessageGranules returns granules if they are in the CMA event meta.input_granules',
-  (t) => {
-    const messageGranules = getMessageGranules(testContext.paramInputGranuleInputJson);
-
-    t.deepEqual(messageGranules, [
-      'MOD09GQ.A2016358.h13v04.006.2016360104606',
-      'MOD09GQ.A2016358.h13v04.007.2017'
-    ]);
-  });
-
-test.serial('GetMessageGranules truncates granules over the specified limit', (t) => {
-  const inputGranules = Array(5).fill().map((e, i) => ({ granuleId: `granule-${i}` }));
-  const message = { payload: { granules: inputGranules } };
-
-  const messageGranules = getMessageGranules(message, 3);
-
-  t.deepEqual(messageGranules, [
-    'granule-0',
-    'granule-1',
-    'granule-2'
-  ]);
-});
-
-test.serial('GetStackName returns a stack name if the stack is in the meta', (t) => {
-  const stack = getStackName(testContext.inputEvent);
-
-  t.is(stack, 'cumulus-stack');
-});
-
-test.serial('GetStackName returns a stack name if the stack is in the CMA event meta', (t) => {
-  const stack = getStackName(testContext.paramInputEvent);
-
-  t.is(stack, 'cumulus-stack');
-});
-
-test.serial('GetParentArn returns a parent arn if the parentArn is in the cumulus_meta', (t) => {
-  const arn = getParentArn(testContext.inputEvent);
-
-  t.is(arn,
-    'arn:aws:states:us-east-1:12345:execution:DiscoverGranules:8768aebb');
-});
-
-test.serial('GetParentArn returns a parent arn if the parentArn is in the CMA event cumulus_meta',
-  (t) => {
-    const arn = getParentArn(testContext.paramInputEvent);
-
-    t.is(arn,
-      'arn:aws:states:us-east-1:12345:execution:DiscoverGranules:8768aebb');
-  });
-
-// eslint-disable-next-line max-len
-test.serial('GetAsyncOperationId returns an async operation id if the asyncOperationId is in the cumulus_meta', (t) => {
-  const asyncOperationId = getAsyncOperationId(testContext.inputEvent);
-
-  t.is(asyncOperationId, 'async-id-123');
-});
-
-// eslint-disable-next-line max-len
-test.serial('GetAsyncOperationId returns an async operation id if the asyncOperationId is in the CMA event cumulus_meta', (t) => {
-  const asyncOperationId = getAsyncOperationId(testContext.paramInputEvent);
-
-  t.is(asyncOperationId, 'async-id-123');
-});
-
 test.serial('generateCMASpawnArguments uses packaged python if no system python', async(t) => {
   const messageAdapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR || './cumulus-message-adapter';
-  const generateCMASpawnArguments = cumulusMessageAdapter.__get__('generateCMASpawnArguments');
-  const revert = cumulusMessageAdapter.__set__('lookpath', () => false);
   const command = 'foobar';
-  const result = await generateCMASpawnArguments(command);
-  revert();
+  const result = await cumulusMessageAdapter.generateCMASpawnArguments(command);
   t.is(result[0], `${messageAdapterDir}/cma_bin/cma`);
   t.deepEqual(result[1], [command]);
 });

@@ -1,17 +1,32 @@
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [v1.2.0]
+## [v1.3.0] 2020-07-30
+
+### BREAKING CHANGES
+
+- **CUMULUS-2065**
+
+  - Removed CUMULUS_MESSAGE_ADAPTER_DISABLED environmental flag, and associated behaviors from `runCumulusTask`
+
+### Changed
+
+- **CUMULUS-2065**
+
+  - Migrated package to TypeScript, moved all source to /src/*.ts
+
+## [v1.2.0] 2020-05-04
 
 ### BREAKING CHANGES
 
 - **CUMULUS-1896**
+
   - Updated `cumulus-message-adapter-js` to be asynchronous - handler functions should be updated to use 'async' style handlers.  See [AWS node.js handler documentation](https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html) for details.    Lambdas utilizing this module will require an update to their handler.
   - Updated [Cumulus Message Adapter (CMA)](https://github.com/nasa/cumulus-message-adapter) subprocess calls to utilize streaming interface from CMA >= 1.3.0.   Use of this and future versions will require an update to CMA >= 1.3.0
-
 
 ## [v1.1.1] - 2020-01-15
 
@@ -84,7 +99,15 @@ Initial release
 
 
 [Unreleased]:
-https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.10...HEAD
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.3.0...HEAD
+[v1.3.0]:
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.2.0...1.3.0
+[v1.2.0]:
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.1.1...1.2.0
+[v1.1.1]:
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.1.0...1.1.1
+[v1.1.0]:
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.10...1.1.0
 [v1.0.10]:
 https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.0.9...1.0.10
 [v1.0.9]:
