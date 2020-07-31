@@ -4,7 +4,6 @@
   "description": "Cumulus message adapter",
   "main": "dist/index.js",
   "files": [
-    "node_modules",
     "dist"
   ],
   "scripts": {

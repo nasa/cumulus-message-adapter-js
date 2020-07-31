@@ -15,7 +15,6 @@ export function isCumulusMessageWithPayload(
 ): message is CumulusMessageWithPayload {
   return (
     (message as CumulusMessageWithPayload)?.payload !== undefined
-    && (message as CumulusRemoteMessage)?.replace === undefined
     && (message as LoadNestedEventInput)?.input === undefined
     && (message as LoadNestedEventInput)?.config === undefined
   );
