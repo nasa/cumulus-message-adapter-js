@@ -73,9 +73,13 @@ export async function invokeCumulusMessageAdapter(): Promise<InvokeCumulusMessag
     cmaProcess.stdout.setEncoding('utf8');
     cmaProcess.stderr.setEncoding('utf8');
     cmaProcess.on('close', () => {
-      console.log(`CMA Exit Code: ${cmaProcess.exitCode} `);
-      if (cmaProcess.exitCode !== 0) {
-        console.log(`CMA Failure: ${errorObj.stderrBuffer}`);
+      if (cmaProcess.killed !== true) {
+        console.log(`CMA Exit Code: ${cmaProcess.exitCode} `);
+        if (cmaProcess.exitCode !== 0) {
+          console.log(`CMA Failure: ${errorObj.stderrBuffer}`);
+        }
+      } else {
+        console.log('CMA process killed');
       }
     });
     cmaProcess.stderr.on('data', (data) => {
@@ -171,12 +175,12 @@ export async function runCumulusTask(
   context: Context,
   schemas: string | null = null
 ): Promise<CumulusMessage | CumulusRemoteMessage> {
+  const { cmaProcess, errorObj } = await invokeCumulusMessageAdapter();
+  const cmaStdin = cmaProcess.stdin;
+  const rl = readline.createInterface({
+    input: cmaProcess.stdout
+  });
   try {
-    const { cmaProcess, errorObj } = await invokeCumulusMessageAdapter();
-    const cmaStdin = cmaProcess.stdin;
-    const rl = readline.createInterface({
-      input: cmaProcess.stdout
-    });
     cmaStdin.write('loadAndUpdateRemoteEvent\n');
     cmaStdin.write(JSON.stringify({
       event: cumulusMessage,
@@ -219,6 +223,15 @@ export async function runCumulusTask(
     }
     return createNextEventOutput;
   } catch (error) {
+    try {
+      cmaStdin.write('\n<EOC>\n');
+      cmaStdin.write('\n<EXIT>\n');
+      if (!cmaProcess.kill('SIGTERM')) {
+        cmaProcess.kill('SIGKILL');
+      }
+    } catch (e) {
+      console.log(`CMA process failed to kill on task failure: ${JSON.stringify(e)}`);
+    }
     if (error?.name?.includes('WorkflowError') && (!isCMAMessage(cumulusMessage))) {
       return { ...cumulusMessage, payload: null, exception: error.name };
     }

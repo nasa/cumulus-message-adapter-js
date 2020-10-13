@@ -3,7 +3,21 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+and this project adheres to [Semantic
+Versioning](http://semver.org/spec/v2.0.0.html).
+
+## [v1.3.2] 2020-10-13
+
+### Fixed
+
+- Fixed issue causing spawned CMA process to left running/in the node event
+  queue, resulting in AWS being unwilling/unable to clean up the instance. This resulted in lambdas with a memory leak/resource issues to not be
+  reclaimed/restarted by AWS.
+
+- Fixed issue where the CMA child process was not cleaning up/deallocating
+  buffered data when the parent process ends, creating a memory 'leak'. This
+  commit updates the error handling to issue SIGTERM/SIGINT in case of error,
+  allowing the subprocess to exit properly.
 
 ## [v1.3.1] 2020-07-31
 
