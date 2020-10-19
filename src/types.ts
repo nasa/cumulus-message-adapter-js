@@ -13,14 +13,18 @@ export interface LoadNestedEventInput {
   config: unknown,
   messageConfig?: unknown
 }
-export interface CumulusMessageWithPayload extends CumulusMessage {
+export interface CumulusMessageWithAssignedPayload extends CumulusMessage {
   payload: {
     granules?: { granuleId: string }[]
-  }
+    [key: string]: unknown
+  } | null,
   meta: {
+    workflow_name: string
+    [key: string]: unknown
     stack?: string,
     input_granules?: { granuleId: string }[]
   }
+  replace?: ReplaceConfig
 }
 export interface CMAMessage {
   cma: {

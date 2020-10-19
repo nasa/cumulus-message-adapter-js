@@ -1,20 +1,20 @@
 import { CumulusMessage, CumulusRemoteMessage } from '@cumulus/types/message';
 import {
   LoadNestedEventInput,
-  CumulusMessageWithPayload,
+  CumulusMessageWithAssignedPayload,
   CMAMessage
 } from './types';
 
 // eslint-disable-next-line require-jsdoc
-export function isCumulusMessageWithPayload(
+export function isCumulusMessageWithAssignedPayload(
   message:
   CumulusMessage |
   CumulusRemoteMessage |
-  CumulusMessageWithPayload |
+  CumulusMessageWithAssignedPayload |
   LoadNestedEventInput
-): message is CumulusMessageWithPayload {
+): message is CumulusMessageWithAssignedPayload {
   return (
-    (message as CumulusMessageWithPayload)?.payload !== undefined
+    (message as CumulusMessageWithAssignedPayload)?.payload !== undefined
     && (message as LoadNestedEventInput)?.input === undefined
     && (message as LoadNestedEventInput)?.config === undefined
   );
@@ -22,7 +22,7 @@ export function isCumulusMessageWithPayload(
 
 // eslint-disable-next-line require-jsdoc
 export function isLoadNestedEventInput(
-  message: CumulusMessageWithPayload | LoadNestedEventInput | CumulusRemoteMessage
+  message: CumulusMessageWithAssignedPayload | LoadNestedEventInput | CumulusRemoteMessage
 ): message is LoadNestedEventInput {
   return (
     (message as LoadNestedEventInput).input !== undefined
