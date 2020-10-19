@@ -6,9 +6,21 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v2.0.0] 2020-10-19
+
+### BREAKING CHANGES
+
+- **CUMULUS-2203**
+  - Updated CumulusMessageWithPayload exported to
+    CumulusMessageWithAssignedPayload.  This change explicitly updates this type
+    to allow for a `null` payload value, as well as explicitly allows for a
+    `replace` key for compatibility with `@cumulus/types` > 3.0.0
+
 ## [v1.3.2] 2020-10-13
 
 ### Fixed
+
+- **CUMULUS_2203**
 
 - Fixed issue causing spawned CMA process to left running/in the node event
   queue, resulting in AWS being unwilling/unable to clean up the instance. This resulted in lambdas with a memory leak/resource issues to not be
