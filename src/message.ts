@@ -1,4 +1,4 @@
-import { CumulusMessageWithPayload } from './types';
+import { CumulusMessageWithAssignedPayload } from './types';
 
 const GRANULE_LOG_LIMIT = 500;
 /**
@@ -12,7 +12,7 @@ const GRANULE_LOG_LIMIT = 500;
  * @returns {Array<string>} - An array of granule ids
  */
 export const getMessageGranules = (
-  message: CumulusMessageWithPayload,
+  message: CumulusMessageWithAssignedPayload,
   granuleLimit: number = GRANULE_LOG_LIMIT
 ): string[] => {
   const granules = message?.payload?.granules || message?.meta?.input_granules;
@@ -30,7 +30,7 @@ export const getMessageGranules = (
  * @returns {string | undefined} - The cumulus stack name.
  */
 export const getStackName = (
-  message: CumulusMessageWithPayload
+  message: CumulusMessageWithAssignedPayload
 ): string | undefined => message?.meta?.stack;
 
 /**
@@ -40,7 +40,7 @@ export const getStackName = (
  * @returns {string | undefined} - the parent execution.
  */
 export const getParentArn = (
-  message: CumulusMessageWithPayload
+  message: CumulusMessageWithAssignedPayload
 ): string | undefined => message?.cumulus_meta?.parentExecutionArn;
 
 /**
@@ -50,7 +50,7 @@ export const getParentArn = (
 * @returns {string | undefined} current execution name.
 */
 export const getExecutions = (
-  message: CumulusMessageWithPayload
+  message: CumulusMessageWithAssignedPayload
 ): string | undefined => message?.cumulus_meta?.execution_name;
 
 /**
@@ -60,5 +60,5 @@ export const getExecutions = (
  * @returns {string} asyncOperationId or null
  */
 export const getAsyncOperationId = (
-  message: CumulusMessageWithPayload
+  message: CumulusMessageWithAssignedPayload
 ): string | undefined => message?.cumulus_meta?.asyncOperationId;

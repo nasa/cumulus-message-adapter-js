@@ -15,14 +15,14 @@ import {
 import {
   CMAMessage,
   CumulusMessageAdapterError,
-  CumulusMessageWithPayload,
+  CumulusMessageWithAssignedPayload,
   InvokeCumulusMessageAdapterResult,
   LoadNestedEventInput
 } from './types';
 
 import {
   isCMAMessage,
-  isCumulusMessageWithPayload,
+  isCumulusMessageWithAssignedPayload,
   isLoadNestedEventInput
 } from './typeGuards';
 
@@ -114,7 +114,7 @@ function safeSetEnv(VARNAME: string, value?: string): void {
  * @returns {undefined} - no return values
  */
 function setCumulusEnvironment(
-  cumulusMessage: CumulusMessageWithPayload,
+  cumulusMessage: CumulusMessageWithAssignedPayload,
   context: Context
 ): void {
   safeSetEnv('EXECUTIONS', getExecutions(cumulusMessage));
@@ -137,7 +137,7 @@ function setCumulusEnvironment(
 async function getCmaOutput(
   readLine: readline.ReadLine,
   errorObj: CumulusMessageAdapterError
-): Promise<CumulusMessageWithPayload | LoadNestedEventInput | CumulusRemoteMessage> {
+): Promise<CumulusMessageWithAssignedPayload | LoadNestedEventInput | CumulusRemoteMessage> {
   return new Promise((resolve, reject) => {
     let buffer = '';
     readLine.resume();
@@ -174,7 +174,7 @@ export async function runCumulusTask(
   cumulusMessage: CumulusMessage | CumulusRemoteMessage | CMAMessage,
   context: Context,
   schemas: string | null = null
-): Promise<CumulusMessage | CumulusRemoteMessage> {
+): Promise<CumulusMessageWithAssignedPayload | CumulusRemoteMessage> {
   const { cmaProcess, errorObj } = await invokeCumulusMessageAdapter();
   const cmaStdin = cmaProcess.stdin;
   const rl = readline.createInterface({
@@ -189,7 +189,7 @@ export async function runCumulusTask(
     }));
     cmaStdin.write('\n<EOC>\n');
     const loadAndUpdateRemoteEventOutput = await getCmaOutput(rl, errorObj);
-    if (!isCumulusMessageWithPayload(loadAndUpdateRemoteEventOutput)) {
+    if (!isCumulusMessageWithAssignedPayload(loadAndUpdateRemoteEventOutput)) {
       throw new Error(`Invalid output typing recieved from
       loadAndUpdateRemoteEvent ${JSON.stringify(loadAndUpdateRemoteEventOutput)}`);
     }
@@ -233,7 +233,9 @@ export async function runCumulusTask(
       console.log(`CMA process failed to kill on task failure: ${JSON.stringify(e)}`);
     }
     if (error?.name?.includes('WorkflowError') && (!isCMAMessage(cumulusMessage))) {
-      return { ...cumulusMessage, payload: null, exception: error.name };
+      return {
+        ...cumulusMessage, payload: null, exception: error.name
+      } as CumulusMessageWithAssignedPayload;
     }
     throw error;
   }
