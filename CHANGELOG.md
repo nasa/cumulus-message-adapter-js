@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v2.0.1] 2021-09-28
+
+- Update `@cumulus/types` package dependency to `^9.6.0`
+
 ## [v2.0.0] 2020-10-19
 
 ### BREAKING CHANGES

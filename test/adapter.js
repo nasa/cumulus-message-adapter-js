@@ -67,17 +67,17 @@ function extractZipFile(filename, dst) {
  * @returns {Promise.<string>} Promise resolution is string of latest github release, e.g. 'v0.0.1'
  */
 function fetchLatestMessageAdapterRelease(gitPath) {
-  const url = process.env.GITHUB_TOKEN
-    ? `https://api.github.com/repos/${gitPath}/releases/latest?access_token=${process.env.GITHUB_TOKEN}`
-    : `https://api.github.com/repos/${gitPath}/releases/latest`;
-
   const options = {
-    url,
+    url: `https://api.github.com/repos/${gitPath}/releases/latest`,
     headers: {
       Accept: 'application/json',
       'User-Agent': '@cumulus/deployment' // Required by Github API
     }
   };
+
+  if (process.env.GITHUB_TOKEN) {
+    options.headers.Authorization = `token ${process.env.GITHUB_TOKEN}`;
+  }
 
   return new Promise((resolve, reject) => {
     request(options, (err, response, body) => {
