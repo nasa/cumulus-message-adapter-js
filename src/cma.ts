@@ -183,7 +183,7 @@ export async function runCumulusTask(
   });
 
   const lambdaTimer = setTimeout(() => {
-    console.log('Lambda timing out!!!! Kililng CMA');
+    console.log('Lambda timing out, ending CMA process');
     try {
       cmaStdin.write('\n<EOC>\n');
       cmaStdin.write('\n<EXIT>\n');
