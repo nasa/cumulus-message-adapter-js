@@ -27,7 +27,7 @@ import {
 } from './typeGuards';
 
 /**
- * An error to be thrown when invokation of the cumulus-message-adapter fails
+ * An error to be thrown when invocation of the cumulus-message-adapter fails
  */
 class CumulusMessageAdapterExecutionError extends Error {
   // eslint-disable-next-line require-jsdoc
@@ -73,10 +73,11 @@ export async function invokeCumulusMessageAdapter(): Promise<InvokeCumulusMessag
     cmaProcess.stdout.setEncoding('utf8');
     cmaProcess.stderr.setEncoding('utf8');
     cmaProcess.on('close', () => {
+      console.log(`CMA Exit Code: ${cmaProcess.exitCode} `);
+      console.log(`CMA StdErr: \n ${errorObj.stderrBuffer}`);
       if (cmaProcess.killed !== true) {
-        console.log(`CMA Exit Code: ${cmaProcess.exitCode} `);
         if (cmaProcess.exitCode !== 0) {
-          console.log(`CMA Failure: ${errorObj.stderrBuffer}`);
+          console.log('CMA exited with failure');
         }
       } else {
         console.log('CMA process killed');
@@ -180,6 +181,20 @@ export async function runCumulusTask(
   const rl = readline.createInterface({
     input: cmaProcess.stdout
   });
+
+  const lambdaTimer = setTimeout(() => {
+    console.log('Lambda timing out!!!! Kililng CMA');
+    try {
+      cmaStdin.write('\n<EOC>\n');
+      cmaStdin.write('\n<EXIT>\n');
+      cmaProcess.kill('SIGINT');
+      cmaProcess.kill('SIGKILL');
+    } catch (e) {
+      console.log(`CMA process failed to kill on task failure: ${JSON.stringify(e)}`);
+    }
+    console.log('CMA exited');
+  }, context.getRemainingTimeInMillis() - 5 * 1000);
+
   try {
     cmaStdin.write('loadAndUpdateRemoteEvent\n');
     cmaStdin.write(JSON.stringify({
@@ -238,5 +253,7 @@ export async function runCumulusTask(
       } as CumulusMessageWithAssignedPayload;
     }
     throw error;
+  } finally {
+    clearTimeout(lambdaTimer);
   }
 }
