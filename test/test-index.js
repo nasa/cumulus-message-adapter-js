@@ -11,6 +11,7 @@ const cumulusMessageAdapter = proxyquire('../dist/index', {
 });
 const { downloadCMA } = require('./adapter');
 
+const handlerContext = { getRemainingTimeInMillis: () => Promise.resolve(10000) };
 // store test context data
 const testContext = {};
 
@@ -60,7 +61,7 @@ test.serial('Execution is set when parameterized configuration is set', async(t)
   const businessLogic = () => Promise.resolve(process.env.EXECUTIONS);
   const expectedOutput = 'execution_value';
   const actual = await cumulusMessageAdapter.runCumulusTask(
-    businessLogic, testContext.paramInputEvent, {}
+    businessLogic, testContext.paramInputEvent, handlerContext
   );
   t.is(expectedOutput, actual.payload);
 });
@@ -111,7 +112,7 @@ test.serial('A WorkflowError is returned properly', async(t) => {
   const actual = await cumulusMessageAdapter.runCumulusTask(
     businessLogic,
     testContext.inputEvent,
-    {}
+    handlerContext
   );
   t.deepEqual(expectedOutput, actual);
 });
@@ -123,7 +124,7 @@ test.serial('A non-WorkflowError is raised', async(t) => {
   await t.throwsAsync(cumulusMessageAdapter.runCumulusTask(
     businessLogic,
     testContext.inputEvent,
-    {}
+    handlerContext
   ),
   { message: 'oh snap', name: 'Error' });
 });
@@ -134,7 +135,7 @@ test.serial('A promise returns an error', async(t) => {
   }
 
   await t.throwsAsync(cumulusMessageAdapter.runCumulusTask(businessLogic,
-    testContext.inputEvent, {}),
+    testContext.inputEvent, handlerContext),
   { name: 'Error', message: 'oh no' });
 });
 
@@ -149,12 +150,12 @@ test.serial('A Promise WorkflowError is returned properly', async(t) => {
     return Promise.reject(error);
   }
   const actual = await cumulusMessageAdapter.runCumulusTask(businessLogic,
-    testContext.inputEvent, {});
+    testContext.inputEvent, handlerContext);
   t.deepEqual(expectedOutput, actual);
 });
 
 test.serial('The task receives the cumulus_config property', async(t) => {
-  const context = { b: 2 };
+  const context = { ...handlerContext, b: 2 };
 
   const inputEvent = clonedeep(testContext.inputEvent);
   inputEvent.cumulus_meta.cumulus_context = { anykey: 'anyvalue' };
