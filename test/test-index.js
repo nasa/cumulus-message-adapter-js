@@ -77,7 +77,7 @@ test.serial('Correct cumulus message is returned when task returns a promise tha
     const actual = await cumulusMessageAdapter.runCumulusTask(
       businessLogic,
       testContext.inputEvent,
-      {}
+      handlerContext
     );
     t.deepEqual(expectedOutput, actual);
   });
