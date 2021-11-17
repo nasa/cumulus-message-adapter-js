@@ -6,6 +6,8 @@ const path = require('path');
 const cumulusMessageAdapter = require('../dist/index');
 const { downloadCMA } = require('./adapter');
 
+const handlerContext = { getRemainingTimeInMillis: () => Promise.resolve(10000) };
+
 // store test context data
 const testContext = {};
 
@@ -39,7 +41,7 @@ test('CUMULUS_MESSAGE_ADAPTER_DIR sets the location of the message adapter', asy
   const result = await cumulusMessageAdapter.runCumulusTask(
     businessLogic,
     testContext.inputEvent,
-    {}
+    handlerContext
   );
   t.deepEqual(result, expectedOutput);
 });
@@ -53,5 +55,11 @@ test('callback returns error if CUMULUS_MESSAGE_ADAPTER_DIR is incorrect', async
 
   const inputEvent = { a: 1 };
 
-  await t.throwsAsync(cumulusMessageAdapter.runCumulusTask(businessLogic, inputEvent, {}));
+  await t.throwsAsync(
+    cumulusMessageAdapter.runCumulusTask(
+      businessLogic,
+      inputEvent,
+      handlerContext
+    )
+  );
 });

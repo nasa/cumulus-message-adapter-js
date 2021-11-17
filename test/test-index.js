@@ -83,7 +83,7 @@ test.serial('Correct cumulus message is returned when task returns a promise tha
   });
 
 test.serial('The businessLogic receives the correct arguments', async(t) => {
-  const context = { b: 2 };
+  const context = { ...handlerContext, b: 2 };
 
   const expectedNestedEvent = {
     input: testContext.inputEvent.payload,
