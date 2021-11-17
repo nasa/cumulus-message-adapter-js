@@ -68,19 +68,21 @@ export async function invokeCumulusMessageAdapter(): Promise<InvokeCumulusMessag
   const errorObj = { stderrBuffer: '' };
   try {
     const cmaProcess = childProcess.spawn(...spawnArguments);
-    cmaProcess.on('error', () => { });
+    cmaProcess.on('error', () => {
+      console.log(`CMA (on error) StdErr: \n ${errorObj.stderrBuffer}`);
+    });
     cmaProcess.stdin.setDefaultEncoding('utf8');
     cmaProcess.stdout.setEncoding('utf8');
     cmaProcess.stderr.setEncoding('utf8');
     cmaProcess.on('close', () => {
       console.log(`CMA Exit Code: ${cmaProcess.exitCode} `);
-      console.log(`CMA StdErr: \n ${errorObj.stderrBuffer}`);
-      if (cmaProcess.killed !== true) {
-        if (cmaProcess.exitCode !== 0) {
+      if (!(cmaProcess.killed === true && cmaProcess.exitCode === 0)) {
+        console.log(`CMA StdErr: \n ${errorObj.stderrBuffer}`);
+        if (cmaProcess.killed === true) {
+          console.log('CMA Process killed');
+        } else {
           console.log('CMA exited with failure');
         }
-      } else {
-        console.log('CMA process killed');
       }
     });
     cmaProcess.stderr.on('data', (data) => {
@@ -183,18 +185,9 @@ export async function runCumulusTask(
   });
 
   const lambdaTimer = setTimeout(() => {
-    console.log('Lambda timing out!!!! Kililng CMA');
-    try {
-      cmaStdin.write('\n<EOC>\n');
-      cmaStdin.write('\n<EXIT>\n');
-      cmaProcess.kill('SIGINT');
-      cmaProcess.kill('SIGKILL');
-    } catch (e) {
-      console.log(`CMA process failed to kill on task failure: ${JSON.stringify(e)}`);
-    }
-    console.log('CMA exited');
-  }, context.getRemainingTimeInMillis() - 5 * 1000);
-
+    console.log('Lambda timing out, writing CMA stderr to cloudwatch logs');
+    console.log(`CMA (on start task timeout) StdErr: \n ${errorObj.stderrBuffer}`);
+  }, context.getRemainingTimeInMillis() - 5 * 100);
   try {
     cmaStdin.write('loadAndUpdateRemoteEvent\n');
     cmaStdin.write(JSON.stringify({
@@ -205,7 +198,7 @@ export async function runCumulusTask(
     cmaStdin.write('\n<EOC>\n');
     const loadAndUpdateRemoteEventOutput = await getCmaOutput(rl, errorObj);
     if (!isCumulusMessageWithAssignedPayload(loadAndUpdateRemoteEventOutput)) {
-      throw new Error(`Invalid output typing recieved from
+      throw new Error(`Invalid output typing received from
       loadAndUpdateRemoteEvent ${JSON.stringify(loadAndUpdateRemoteEventOutput)}`);
     }
     setCumulusEnvironment(loadAndUpdateRemoteEventOutput, context);
@@ -218,10 +211,14 @@ export async function runCumulusTask(
     cmaStdin.write('\n<EOC>\n');
     const loadNestedEventOutput = await getCmaOutput(rl, errorObj);
     if (!isLoadNestedEventInput(loadNestedEventOutput)) {
-      throw new Error(`Invalid output typing recieved from
+      throw new Error(`Invalid output typing received from
       loadNestedEvent ${JSON.stringify(loadNestedEventOutput)}`);
     }
+
+    console.log('Starting task function');
     const taskOutput = await TaskFunction(loadNestedEventOutput, context);
+    console.log('Starting task function finished');
+
     cmaStdin.write('createNextEvent\n');
     cmaStdin.write(JSON.stringify({
       event: loadAndUpdateRemoteEventOutput,
@@ -233,10 +230,11 @@ export async function runCumulusTask(
     const createNextEventOutput = await getCmaOutput(rl, errorObj);
     cmaStdin.write('\n<EXIT>\n');
     if (isLoadNestedEventInput(createNextEventOutput)) {
-      throw new Error(`Invalid typing recieved from
+      throw new Error(`Invalid typing received from
       createNextEventOutput: ${JSON.stringify(createNextEventOutput)}`);
     }
-    return createNextEventOutput;
+    const returnVal = createNextEventOutput;
+    return returnVal;
   } catch (error) {
     try {
       cmaStdin.write('\n<EOC>\n');

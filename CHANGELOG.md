@@ -9,9 +9,7 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ## [v2.0.1] 2021-11-10
 
 - **CUMULUS-2745**
-  - Adds a timer function that will kill the CMA process/lambda prior to
-    an AWS interrupt to avoid losing the diagnostic logs
-  - Updates the lambda to always log stderr on lambda timeout
+  - Updates logging to always log CMA stderr on function timeout
 
 ## [v2.0.0] 2020-10-19
 
