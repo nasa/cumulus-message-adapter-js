@@ -67,7 +67,7 @@
   },
   "dependencies": {
     "@types/aws-lambda": "^8.10.58",
-    "@cumulus/types": "3.0.0",
+    "@cumulus/types": "^9.6.0",
     "execa": "^4.0.0",
     "lookpath": "1.0.3"
   }

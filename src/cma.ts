@@ -214,11 +214,10 @@ export async function runCumulusTask(
       throw new Error(`Invalid output typing received from
       loadNestedEvent ${JSON.stringify(loadNestedEventOutput)}`);
     }
-
     console.log('Starting task function');
     const taskOutput = await TaskFunction(loadNestedEventOutput, context);
     console.log('Starting task function finished');
-
+    
     cmaStdin.write('createNextEvent\n');
     cmaStdin.write(JSON.stringify({
       event: loadAndUpdateRemoteEventOutput,

@@ -11,6 +11,10 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 - **CUMULUS-2745**
   - Updates logging to always log CMA stderr on function timeout
 
+## [v2.0.1] 2021-09-28
+
+- Update `@cumulus/types` package dependency to `^9.6.0`
+
 ## [v2.0.0] 2020-10-19
 
 ### BREAKING CHANGES
