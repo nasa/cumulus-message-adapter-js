@@ -13,7 +13,7 @@ const {
 
 const testContext = {};
 
-test.before(async () => {
+test.before(async() => {
   const inputJson = path.join(__dirname, 'fixtures/messages/basic.input.json');
   testContext.inputEvent = JSON.parse(fs.readFileSync(inputJson));
   const granuleInputJson = path.join(__dirname, 'fixtures/messages/execution.granule.input.json');
