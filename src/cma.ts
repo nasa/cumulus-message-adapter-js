@@ -217,7 +217,7 @@ export async function runCumulusTask(
     console.log('Starting task function');
     const taskOutput = await TaskFunction(loadNestedEventOutput, context);
     console.log('Starting task function finished');
-    
+
     cmaStdin.write('createNextEvent\n');
     cmaStdin.write(JSON.stringify({
       event: loadAndUpdateRemoteEventOutput,
