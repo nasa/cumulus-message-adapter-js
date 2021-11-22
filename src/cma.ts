@@ -184,10 +184,17 @@ export async function runCumulusTask(
     input: cmaProcess.stdout
   });
 
-  const lambdaTimer = setTimeout(() => {
-    console.log('Lambda timing out, writing CMA stderr to cloudwatch logs');
-    console.log(`CMA (on start task timeout) StdErr: \n ${errorObj.stderrBuffer}`);
-  }, context.getRemainingTimeInMillis() - 5 * 100);
+  let lambdaTimer = setTimeout(() => {
+    console.log(
+      'Info: No CMA buffer dump set, lambda is not running as a lambda'
+    );
+  }, 0);
+  if (typeof context.getRemainingTimeInMillis === 'function') {
+    lambdaTimer = setTimeout(() => {
+      console.log('Lambda timing out, writing CMA stderr to cloudwatch logs');
+      console.log(`CMA (on start task timeout) StdErr: \n ${errorObj.stderrBuffer}`);
+    }, context.getRemainingTimeInMillis() - 5 * 100);
+  }
   try {
     cmaStdin.write('loadAndUpdateRemoteEvent\n');
     cmaStdin.write(JSON.stringify({

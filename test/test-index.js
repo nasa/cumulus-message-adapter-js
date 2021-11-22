@@ -99,6 +99,29 @@ test.serial('The businessLogic receives the correct arguments', async(t) => {
     .runCumulusTask(businessLogic, testContext.inputEvent, context);
 });
 
+test.serial(
+  'businessLogic recieves expected args when lambda context is missing getRemainingTimeInMillis',
+  async (t) => {
+    const context = { b: 2 };
+
+    const expectedNestedEvent = {
+      input: testContext.inputEvent.payload,
+      config: testContext.inputEvent.task_config,
+    };
+
+    function businessLogic(actualNestedEvent, actualContext) {
+      t.deepEqual(actualNestedEvent, expectedNestedEvent);
+      t.deepEqual(actualContext, context);
+      return 42;
+    }
+    await cumulusMessageAdapter.runCumulusTask(
+      businessLogic,
+      testContext.inputEvent,
+      context
+    );
+  }
+);
+
 test.serial('A WorkflowError is returned properly', async(t) => {
   const expectedOutput = clonedeep(testContext.outputEvent);
   expectedOutput.payload = null;

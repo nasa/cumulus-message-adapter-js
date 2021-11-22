@@ -6,7 +6,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v2.0.3] 2021-11-20
+
+### Fixed
+
+- **CUMULUS-2745**
+  - Bug fix/patch release to fix issue where Lambda execution contexts like ECS tasks that did not have an AWS Lambda `context` object with a `getRemainingTimeInMillis` method resulted in task failure
+
 ## [v2.0.2] 2021-11-17
+
+### Updated
 
 - **CUMULUS-2745**
   - Updates logging to always log CMA stderr on function timeout
