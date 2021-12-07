@@ -12,6 +12,9 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 - **CUMULUS-2745**
   - Fixed erroneous log output when running as a lambda incorrectly indicating timeout behaviors were not enabled
+  - Fix streaming interface issue where lambda failure results
+    in an empty line being sent to the CMA resulting in a 'blank'
+    command (')
 
 ## [v2.0.3] 2021-11-20
 

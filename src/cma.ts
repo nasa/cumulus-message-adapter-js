@@ -238,7 +238,7 @@ export async function runCumulusTask(
     }));
     cmaStdin.write('\n<EOC>\n');
     const createNextEventOutput = await getCmaOutput(rl, errorObj);
-    cmaStdin.write('\n<EXIT>\n');
+    cmaStdin.write('<EXIT>\n');
     if (isLoadNestedEventInput(createNextEventOutput)) {
       throw new Error(`Invalid typing received from
       createNextEventOutput: ${JSON.stringify(createNextEventOutput)}`);
@@ -248,7 +248,7 @@ export async function runCumulusTask(
   } catch (error) {
     try {
       cmaStdin.write('\n<EOC>\n');
-      cmaStdin.write('\n<EXIT>\n');
+      cmaStdin.write('<EXIT>\n');
       if (!cmaProcess.kill('SIGTERM')) {
         cmaProcess.kill('SIGKILL');
       }
