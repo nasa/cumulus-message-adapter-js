@@ -5,13 +5,11 @@ const fs = require('fs-extra');
 const path = require('path');
 const proxyquire = require('proxyquire');
 const clonedeep = require('lodash.clonedeep');
-
 const cumulusMessageAdapter = proxyquire('../dist/index', {
   lookpath: () => false
 });
 const { downloadCMA } = require('./adapter');
-
-const handlerContext = { getRemainingTimeInMillis: () => Promise.resolve(10000) };
+const handlerContext = { getRemainingTimeInMillis: () => 100000 };
 // store test context data
 const testContext = {};
 
@@ -100,8 +98,8 @@ test.serial('The businessLogic receives the correct arguments', async(t) => {
 });
 
 test.serial(
-  'businessLogic recieves expected args when lambda context is missing getRemainingTimeInMillis',
-  async (t) => {
+  'businessLogic receives expected args when lambda context is missing getRemainingTimeInMillis',
+  async(t) => {
     const context = { b: 2 };
 
     const expectedNestedEvent = {
