@@ -5,7 +5,8 @@ export interface CumulusMessageAdapterError { stderrBuffer: string }
 
 export interface InvokeCumulusMessageAdapterResult {
   cmaProcess: ChildProcessWithoutNullStreams,
-  errorObj: CumulusMessageAdapterError
+  errorObj: CumulusMessageAdapterError,
+  statusObj: { close: boolean }
 }
 
 export interface LoadNestedEventInput {

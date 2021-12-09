@@ -6,15 +6,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [v2.0.4] 2021-12-07
+## [v2.0.4] 2021-12-09
 
 ### Fixed
 
 - **CUMULUS-2745**
   - Fixed erroneous log output when running as a lambda incorrectly indicating timeout behaviors were not enabled
   - Fix streaming interface issue where lambda failure results
-    in an empty line being sent to the CMA resulting in a 'blank'
-    command (')
+    in an empty line being sent to the CMA resulting in a 'blank' command (')
+  - Update error handling logic to wait for completion of CMA close event before throwing
 
 ## [v2.0.3] 2021-11-20
 

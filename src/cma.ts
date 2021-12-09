@@ -66,6 +66,7 @@ export async function generateCMASpawnArguments(command: string): Promise<[strin
 export async function invokeCumulusMessageAdapter(): Promise<InvokeCumulusMessageAdapterResult> {
   const spawnArguments = await generateCMASpawnArguments('stream');
   const errorObj = { stderrBuffer: '' };
+  const statusObj = { close: false };
   try {
     const cmaProcess = childProcess.spawn(...spawnArguments);
     cmaProcess.on('error', () => {
@@ -74,21 +75,19 @@ export async function invokeCumulusMessageAdapter(): Promise<InvokeCumulusMessag
     cmaProcess.stdin.setDefaultEncoding('utf8');
     cmaProcess.stdout.setEncoding('utf8');
     cmaProcess.stderr.setEncoding('utf8');
-    cmaProcess.on('close', () => {
-      console.log(`CMA Exit Code: ${cmaProcess.exitCode} `);
-      if (!(cmaProcess.killed === true && cmaProcess.exitCode === 0)) {
-        console.log(`CMA StdErr: \n ${errorObj.stderrBuffer}`);
-        if (cmaProcess.killed === true) {
-          console.log('CMA Process killed');
-        } else {
-          console.log('CMA exited with failure');
-        }
+    cmaProcess.on('close', (code, signal) => {
+      if (code !== 0) {
+        console.log(`CMA Exit Code: ${code}`);
+        console.log(`CMA Exit Signal: ${signal}`);
+        console.log(`CMA Process Kill: ${cmaProcess.killed}`);
+        console.log(`CMA StdErr: \n ${errorObj.stderrBuffer}\n`);
       }
+      statusObj.close = true;
     });
     cmaProcess.stderr.on('data', (data) => {
       errorObj.stderrBuffer += String(data);
     });
-    return { cmaProcess, errorObj };
+    return { cmaProcess, errorObj, statusObj };
   } catch (error) {
     const msg = `CMA process failed (${error.shortMessage})\n
                  Trace: ${error.message}}\n\n\n
@@ -178,13 +177,14 @@ export async function runCumulusTask(
   context: Context,
   schemas: string | null = null
 ): Promise<CumulusMessageWithAssignedPayload | CumulusRemoteMessage> {
-  const { cmaProcess, errorObj } = await invokeCumulusMessageAdapter();
+  const { cmaProcess, errorObj, statusObj } = await invokeCumulusMessageAdapter();
   const cmaStdin = cmaProcess.stdin;
   const rl = readline.createInterface({
     input: cmaProcess.stdout
   });
 
   let lambdaTimer;
+  let runningTask = false;
 
   if (typeof context.getRemainingTimeInMillis === 'function') {
     lambdaTimer = setTimeout(() => {
@@ -226,7 +226,9 @@ export async function runCumulusTask(
       loadNestedEvent ${JSON.stringify(loadNestedEventOutput)}`);
     }
     console.log('Starting task function');
+    runningTask = true;
     const taskOutput = await TaskFunction(loadNestedEventOutput, context);
+    runningTask = false;
     console.log('Starting task function finished');
 
     cmaStdin.write('createNextEvent\n');
@@ -247,7 +249,9 @@ export async function runCumulusTask(
     return returnVal;
   } catch (error) {
     try {
-      cmaStdin.write('\n<EOC>\n');
+      if (!runningTask) {
+        cmaStdin.write('\n');
+      }
       cmaStdin.write('<EXIT>\n');
       if (!cmaProcess.kill('SIGTERM')) {
         cmaProcess.kill('SIGKILL');
@@ -259,6 +263,15 @@ export async function runCumulusTask(
       return {
         ...cumulusMessage, payload: null, exception: error.name
       } as CumulusMessageWithAssignedPayload;
+    }
+
+    // Wait for .close process event to complete before throwing
+    let waitIterations = 0;
+    while (!statusObj.close && waitIterations < 20) {
+      console.log('Waiting up to 2 seconds for CMA child process to exit');
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((r) => setTimeout(r, 100));
+      waitIterations += 1;
     }
     throw error;
   } finally {
