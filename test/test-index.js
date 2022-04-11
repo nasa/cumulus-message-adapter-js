@@ -6,7 +6,7 @@ const path = require('path');
 const proxyquire = require('proxyquire');
 const clonedeep = require('lodash.clonedeep');
 const cumulusMessageAdapter = proxyquire('../dist/index', {
-  lookpath: () => false
+  lookpath: () => false,
 });
 const { downloadCMA } = require('./adapter');
 const handlerContext = { getRemainingTimeInMillis: () => 100000 };
@@ -47,7 +47,7 @@ test.after.always('final cleanup', () => {
   }
   return Promise.all([
     fs.remove(testContext.src),
-    fs.remove(testContext.dest)
+    fs.remove(testContext.dest),
   ]);
 });
 
@@ -85,7 +85,7 @@ test.serial('The businessLogic receives the correct arguments', async(t) => {
 
   const expectedNestedEvent = {
     input: testContext.inputEvent.payload,
-    config: testContext.inputEvent.task_config
+    config: testContext.inputEvent.task_config,
   };
 
   function businessLogic(actualNestedEvent, actualContext) {

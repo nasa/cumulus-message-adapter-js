@@ -9,7 +9,7 @@ import {
   getExecutions,
   getMessageGranules,
   getParentArn,
-  getStackName
+  getStackName,
 } from './message';
 
 import {
@@ -17,13 +17,13 @@ import {
   CumulusMessageAdapterError,
   CumulusMessageWithAssignedPayload,
   InvokeCumulusMessageAdapterResult,
-  LoadNestedEventInput
+  LoadNestedEventInput,
 } from './types';
 
 import {
   isCMAMessage,
   isCumulusMessageWithAssignedPayload,
-  isLoadNestedEventInput
+  isLoadNestedEventInput,
 } from './typeGuards';
 
 /**
@@ -88,7 +88,7 @@ export async function invokeCumulusMessageAdapter(): Promise<InvokeCumulusMessag
       errorObj.stderrBuffer += String(data);
     });
     return { cmaProcess, errorObj, statusObj };
-  } catch (error) {
+  } catch (error: any) {
     const msg = `CMA process failed (${error.shortMessage})\n
                  Trace: ${error.message}}\n\n\n
                  STDERR: ${errorObj.stderrBuffer}`;
@@ -180,7 +180,7 @@ export async function runCumulusTask(
   const { cmaProcess, errorObj, statusObj } = await invokeCumulusMessageAdapter();
   const cmaStdin = cmaProcess.stdin;
   const rl = readline.createInterface({
-    input: cmaProcess.stdout
+    input: cmaProcess.stdout,
   });
 
   let lambdaTimer;
@@ -204,7 +204,7 @@ export async function runCumulusTask(
     cmaStdin.write(JSON.stringify({
       event: cumulusMessage,
       context,
-      schemas
+      schemas,
     }));
     cmaStdin.write('\n<EOC>\n');
     const loadAndUpdateRemoteEventOutput = await getCmaOutput(rl, errorObj);
@@ -217,7 +217,7 @@ export async function runCumulusTask(
     cmaStdin.write(JSON.stringify({
       event: loadAndUpdateRemoteEventOutput,
       schemas,
-      context
+      context,
     }));
     cmaStdin.write('\n<EOC>\n');
     const loadNestedEventOutput = await getCmaOutput(rl, errorObj);
@@ -236,7 +236,7 @@ export async function runCumulusTask(
       event: loadAndUpdateRemoteEventOutput,
       handler_response: taskOutput,
       message_config: loadNestedEventOutput.messageConfig,
-      schemas
+      schemas,
     }));
     cmaStdin.write('\n<EOC>\n');
     const createNextEventOutput = await getCmaOutput(rl, errorObj);
@@ -247,7 +247,7 @@ export async function runCumulusTask(
     }
     const returnVal = createNextEventOutput;
     return returnVal;
-  } catch (error) {
+  } catch (error: any) {
     try {
       if (!runningTask) {
         cmaStdin.write('\n');
@@ -261,7 +261,7 @@ export async function runCumulusTask(
     }
     if (error?.name?.includes('WorkflowError') && (!isCMAMessage(cumulusMessage))) {
       return {
-        ...cumulusMessage, payload: null, exception: error.name
+        ...cumulusMessage, payload: null, exception: error.name,
       } as CumulusMessageWithAssignedPayload;
     }
 

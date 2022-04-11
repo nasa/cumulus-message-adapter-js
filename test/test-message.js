@@ -8,7 +8,7 @@ const {
   getMessageGranules,
   getStackName,
   getParentArn,
-  getAsyncOperationId
+  getAsyncOperationId,
 } = require('../dist/message');
 
 const testContext = {};
@@ -33,7 +33,7 @@ test.serial('GetMessageGranules returns granules if they are in the payload', (t
 
   t.deepEqual(messageGranules, [
     'MOD09GQ.A2016358.h13v04.006.2016360104606',
-    'MOD09GQ.A2016358.h13v04.007.2017'
+    'MOD09GQ.A2016358.h13v04.007.2017',
   ]);
 });
 
@@ -42,7 +42,7 @@ test.serial('GetMessageGranules returns granules if they are in the meta.input_g
 
   t.deepEqual(messageGranules, [
     'MOD09GQ.A2016358.h13v04.006.2016360104606',
-    'MOD09GQ.A2016358.h13v04.007.2017'
+    'MOD09GQ.A2016358.h13v04.007.2017',
   ]);
 });
 
@@ -53,7 +53,7 @@ test.serial('GetMessageGranules truncates granules over the specified limit', (t
   t.deepEqual(messageGranules, [
     'granule-0',
     'granule-1',
-    'granule-2'
+    'granule-2',
   ]);
 });
 
