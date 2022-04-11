@@ -88,7 +88,7 @@ export async function invokeCumulusMessageAdapter(): Promise<InvokeCumulusMessag
       errorObj.stderrBuffer += String(data);
     });
     return { cmaProcess, errorObj, statusObj };
-  } catch (error: any) {
+  } catch (error) {
     const msg = `CMA process failed (${error.shortMessage})\n
                  Trace: ${error.message}}\n\n\n
                  STDERR: ${errorObj.stderrBuffer}`;
@@ -247,7 +247,7 @@ export async function runCumulusTask(
     }
     const returnVal = createNextEventOutput;
     return returnVal;
-  } catch (error: any) {
+  } catch (error) {
     try {
       if (!runningTask) {
         cmaStdin.write('\n');
