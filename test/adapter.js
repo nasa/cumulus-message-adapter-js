@@ -22,8 +22,8 @@ function downloadZipfile(fileUrl, localFilename) {
     headers: {
       Accept: 'application/octet-stream',
       'Content-Type': 'application/zip',
-      'Content-Transfer-Encoding': 'binary'
-    }
+      'Content-Transfer-Encoding': 'binary',
+    },
   };
 
   return new Promise((resolve, reject) => {
@@ -71,8 +71,8 @@ function fetchLatestMessageAdapterRelease(gitPath) {
     url: `https://api.github.com/repos/${gitPath}/releases/latest`,
     headers: {
       Accept: 'application/json',
-      'User-Agent': '@cumulus/deployment' // Required by Github API
-    }
+      'User-Agent': '@cumulus/deployment', // Required by Github API
+    },
   };
 
   if (process.env.GITHUB_TOKEN) {
@@ -163,5 +163,5 @@ module.exports = {
   fetchLatestMessageAdapterRelease,
   messageAdapterVersion,
   messageAdapterUrl,
-  fetchMessageAdapter
+  fetchMessageAdapter,
 };

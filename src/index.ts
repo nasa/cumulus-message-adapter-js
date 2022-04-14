@@ -1,7 +1,7 @@
 export {
   generateCMASpawnArguments,
   invokeCumulusMessageAdapter,
-  runCumulusTask
+  runCumulusTask,
 } from './cma';
 
 export * from './types';

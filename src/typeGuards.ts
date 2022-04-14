@@ -2,7 +2,7 @@ import { CumulusMessage, CumulusRemoteMessage } from '@cumulus/types/message';
 import {
   LoadNestedEventInput,
   CumulusMessageWithAssignedPayload,
-  CMAMessage
+  CMAMessage,
 } from './types';
 
 // eslint-disable-next-line require-jsdoc

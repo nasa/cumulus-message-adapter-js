@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+- **CUMULUS-2920**
+  - Update dev dependencies to allow inter-version compatibility
+  - Update package-lock.json to use new dependencies/newer npm format
+  - Update circleCi build to use npm@8.6.0
+
 ## [v2.0.4] 2021-12-09
 
 ### Fixed
