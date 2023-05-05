@@ -8,6 +8,13 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+### Fixed
+
+- **CUMULUS-2920**
+  - Handled EPIPE exception when writing to stdin of an exited CMA process
+
+### Updated
+
 - **CUMULUS-2920**
   - Update dev dependencies to allow inter-version compatibility
   - Update package-lock.json to use new dependencies/newer npm format
