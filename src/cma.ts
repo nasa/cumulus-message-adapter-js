@@ -85,7 +85,7 @@ export async function invokeCumulusMessageAdapter(): Promise<InvokeCumulusMessag
       statusObj.close = true;
     });
     cmaProcess.stdin.on('error', (error) => {
-      console.log(`CMA stdin on error: \n ${errorObj.stderrBuffer}`, error);
+      console.log(`CMA stdin on error: ${error.message}`);
     });
     cmaProcess.stderr.on('data', (data) => {
       errorObj.stderrBuffer += String(data);
