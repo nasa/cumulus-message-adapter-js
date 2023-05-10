@@ -8,6 +8,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+## [v2.0.5] 2022-05-10
+
 ### Fixed
 
 - **CUMULUS-2920**
