@@ -55,4 +55,4 @@ workflows:
             - build
           filters:
             branches:
-              only: master
+              only: "circleci-editor/361/master"
