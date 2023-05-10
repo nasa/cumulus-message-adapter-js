@@ -24,9 +24,7 @@ jobs:
           paths:
             - ./node_modules
           key: dependencies-{{ checksum "package.json" }}
-      - add_ssh_keys:
-          fingerprints:
-            - "a0:b7:39:23:35:54:e5:36:ef:b1:9c:5c:22:ec:e2:26"
+
   publish:
     docker:
       - image: circleci/node:12.18.0
@@ -35,6 +33,9 @@ jobs:
       - checkout
       - attach_workspace:
           at: ./
+      - add_ssh_keys:
+          fingerprints:
+            - "a0:b7:39:23:35:54:e5:36:ef:b1:9c:5c:22:ec:e2:26"
       - run:
           name: Publish release
           command: |
