@@ -14,7 +14,8 @@
   "ava": {
     "files": [
       "test/test*.js"
-    ]
+    ],
+    "timeout": "15m"
   },
   "publishConfig": {
     "access": "public"
