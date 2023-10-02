@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:12.18.0
+      - image: cimg/node:12.18.0
     working_directory: ~/cumulus-message-adapter
     steps:
       - checkout
