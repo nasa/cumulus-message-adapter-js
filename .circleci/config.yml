@@ -12,6 +12,14 @@ jobs:
       - run:
           name: Run tests
           command: |
+            sudo apt update && sudo apt install libssl-dev libffi-dev zlib1g-dev
+            wget -c https://www.python.org/ftp/python/3.10.9/Python-3.10.9.tgz
+            tar zxf Python-3.10.9.tgz
+            cd Python-3.10.9
+            sudo ./configure --enable optimizations
+            sudo make -j4
+            sudo make altinstall
+            sudo update-alternatives --install /usr/bin/python python /usr/local/bin/python3.10 1
             sudo npm install -g npm@8.6.0 && npm install
             npm run build
             npm run lint
