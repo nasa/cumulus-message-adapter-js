@@ -10,7 +10,6 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [v2.1.0] 2023-04-10
 
-
 ### Updated
 
 - **CUMULUS-3447**
