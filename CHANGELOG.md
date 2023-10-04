@@ -8,14 +8,6 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
-## [v2.1.0] 2023-04-10
-
-
-### Updated
-
-- **CUMULUS-3447**
-  - Update supported node version to v16.19.0
-
 ## [v2.0.5] 2022-05-10
 
 ### Fixed
