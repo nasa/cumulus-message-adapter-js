@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: cimg/node:16.19.0
+      - image: cimg/node:20.12.2
     working_directory: ~/cumulus-message-adapter
     steps:
       - checkout
@@ -34,7 +34,7 @@ jobs:
           key: dependencies-{{ checksum "package.json" }}
   publish:
     docker:
-      - image: cimg/node:16.19.0
+      - image: cimg/node:20.12.2
     working_directory: ~/cumulus-message-adapter
     steps:
       - checkout

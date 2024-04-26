@@ -8,12 +8,17 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+## [v2.2.0] 2024-04-25
+
+- **Cumulus-3443**
+  - Update minimum supported node/build environment/dependencies to node 20.12
+
 ## [v2.1.0] 2023-04-10
 
 ### Updated
 
 - **CUMULUS-3447**
-  - Update supported node version to v16.19.0
+  - Update minimum supported node version to v16.19.0
 
 ## [v2.0.5] 2022-05-10
 
