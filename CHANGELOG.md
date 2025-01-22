@@ -7,6 +7,8 @@ and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+- **CUMULUS-3947**
+  - Modified cumulus-message-adapter spawn to put Python into UTF-8 mode
 
 ## [v2.2.0] 2024-04-25
 
