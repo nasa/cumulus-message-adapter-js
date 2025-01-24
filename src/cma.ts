@@ -43,7 +43,9 @@ class CumulusMessageAdapterExecutionError extends Error {
  * @param {string} command - the action to be performed by the message-adapter
  * @returns {Promise.<Array>} - Returns arguments used to spawn the CMA
  */
-export async function generateCMASpawnArguments(command: string): Promise<[string, string[], Object]> {
+export async function generateCMASpawnArguments(
+  command: string
+): Promise<[string, string[], Object]> {
   const adapterDir = process.env.CUMULUS_MESSAGE_ADAPTER_DIR ?? './cumulus-message-adapter';
   const systemPython = await lookpath('python');
   if (systemPython && process.env.USE_CMA_BINARY !== 'true') {
