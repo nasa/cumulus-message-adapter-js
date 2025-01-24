@@ -7,6 +7,9 @@ and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [v2.3.0] 2025-01-24
+
 - **CUMULUS-3947**
   - Modified cumulus-message-adapter spawn to put Python into UTF-8 mode
 
@@ -189,7 +192,9 @@ Initial release
 
 
 [Unreleased]:
-https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.3.0...HEAD
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v2.3.0...HEAD
+[v2.3.0]:
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.3.0...2.3.0
 [v1.3.0]:
 https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.2.0...1.3.0
 [v1.2.0]:
