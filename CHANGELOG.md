@@ -11,6 +11,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 - **CUMULUS-4446**
   - Updated node to v22.21.1
   - Updated typescript to 5.0
+  - Updates build process to handle github CDN redirects
+  - Removes "request" from devDependencies to address various CVEs/deprecated package
 
 ## [v2.3.0] 2025-01-24
 
