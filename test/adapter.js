@@ -73,9 +73,9 @@ async function fetchLatestMessageAdapterRelease(gitPath) {
     'User-Agent': '@cumulus/deployment', // Required by Github API
   };
 
-  /*   if (process.env.GITHUB_TOKEN) {
+  if (process.env.GITHUB_DOWNLOAD_TOKEN) {
     headers.Authorization = `token ${process.env.GITHUB_TOKEN}`;
-  } */
+  }
 
   const response = await fetch(`https://api.github.com/repos/${gitPath}/releases/latest`, {
     headers,
@@ -113,8 +113,8 @@ function messageAdapterVersion(version, gitPath) {
  */
 function messageAdapterUrl(version, gitPath, filename) {
   return messageAdapterVersion(version, gitPath)
-    .then((ver) => (process.env.GITHUB_TOKEN
-      ? `https://github.com/${gitPath}/releases/download/${ver}/${filename}?access_token=${process.env.GITHUB_TOKEN}`
+    .then((ver) => (process.env.GITHUB_DOWNLOAD_TOKEN
+      ? `https://github.com/${gitPath}/releases/download/${ver}/${filename}?access_token=${process.env.GITHUB_DOWNLOAD_TOKEN}`
       : `https://github.com/${gitPath}/releases/download/${ver}/${filename}`));
 }
 
