@@ -20,7 +20,7 @@ jobs:
             sudo make -j4
             sudo make altinstall
             sudo update-alternatives --install /usr/bin/python python /usr/local/bin/python3.10 1
-            sudo npm install -g npm@8.6.0 && npm install
+            sudo npm install -g npm@10.5.0 && npm install
             npm run build
             npm run lint
             npm run test
