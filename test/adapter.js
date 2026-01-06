@@ -73,7 +73,7 @@ async function fetchLatestMessageAdapterRelease(gitPath) {
     'User-Agent': '@cumulus/deployment', // Required by Github API
   };
 
-/*   if (process.env.GITHUB_TOKEN) {
+  /*   if (process.env.GITHUB_TOKEN) {
     headers.Authorization = `token ${process.env.GITHUB_TOKEN}`;
   } */
 
