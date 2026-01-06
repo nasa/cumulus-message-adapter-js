@@ -13,10 +13,12 @@ const extract = require('extract-zip');
  *
  * @param {string} fileUrl - URL file location
  * @param {string} localFilename - Where to store file locally
+ * @param {number} redirectCount - Number of redirects followed (for internal use)
  * @returns {Promise} - resolves `undefined` when download is completed
  */
-function downloadZipfile(fileUrl, localFilename) {
+function downloadZipfile(fileUrl, localFilename, redirectCount = 0) {
   const file = fs.createWriteStream(localFilename);
+  const maxRedirects = 10;
 
   return new Promise((resolve, reject) => {
     https.get(fileUrl, {
@@ -26,7 +28,20 @@ function downloadZipfile(fileUrl, localFilename) {
         'Content-Transfer-Encoding': 'binary',
       },
     }, (response) => {
+      // Handle redirects (301, 302, 303, 307, 308)
+      if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+        file.close();
+        if (redirectCount >= maxRedirects) {
+          reject(new Error(`Too many redirects (${maxRedirects}) for ${fileUrl}`));
+          return;
+        }
+        console.log(`Following redirect to ${response.headers.location}`);
+        resolve(downloadZipfile(response.headers.location, localFilename, redirectCount + 1));
+        return;
+      }
+
       if (response.statusCode !== 200) {
+        file.close();
         reject(new Error(`${response.statusMessage}: ${fileUrl}`));
         return;
       }
@@ -73,7 +88,7 @@ async function fetchLatestMessageAdapterRelease(gitPath) {
     'User-Agent': '@cumulus/deployment', // Required by Github API
   };
 
-  if (process.env.GITHUB_DOWNLOAD_TOKEN) {
+  if (process.env.GITHUB_TOKEN) {
     headers.Authorization = `token ${process.env.GITHUB_TOKEN}`;
   }
 
@@ -113,8 +128,8 @@ function messageAdapterVersion(version, gitPath) {
  */
 function messageAdapterUrl(version, gitPath, filename) {
   return messageAdapterVersion(version, gitPath)
-    .then((ver) => (process.env.GITHUB_DOWNLOAD_TOKEN
-      ? `https://github.com/${gitPath}/releases/download/${ver}/${filename}?access_token=${process.env.GITHUB_DOWNLOAD_TOKEN}`
+    .then((ver) => (process.env.GITHUB_TOKEN
+      ? `https://github.com/${gitPath}/releases/download/${ver}/${filename}?access_token=${process.env.GITHUB_TOKEN}`
       : `https://github.com/${gitPath}/releases/download/${ver}/${filename}`));
 }
 
