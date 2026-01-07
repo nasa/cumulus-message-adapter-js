@@ -21,7 +21,7 @@
     "access": "public"
   },
   "engines": {
-    "node": ">=22.22.1"
+    "node": ">=22.21.1"
   },
   "directories": {
     "test": "tests"

@@ -94,9 +94,12 @@ export async function invokeCumulusMessageAdapter(): Promise<InvokeCumulusMessag
     });
     return { cmaProcess, errorObj, statusObj };
   } catch (error) {
-    const err = error as any;
-    const msg = `CMA process failed (${err.shortMessage})\n
-                 Trace: ${err.message}}\n\n\n
+    const shortMessage = error instanceof Error && 'shortMessage' in error
+      ? error.shortMessage
+      : '';
+    const message = error instanceof Error ? error.message : String(error);
+    const msg = `CMA process failed (${shortMessage})\n
+                 Trace: ${message}}\n\n\n
                  STDERR: ${errorObj.stderrBuffer}`;
     throw new CumulusMessageAdapterExecutionError(msg);
   }
@@ -265,10 +268,10 @@ export async function runCumulusTask(
     } catch (e) {
       console.log(`CMA process failed to kill on task failure: ${JSON.stringify(e)}`);
     }
-    const err = error as any;
-    if (err?.name?.includes('WorkflowError') && (!isCMAMessage(cumulusMessage))) {
+    const errorName = error instanceof Error && 'name' in error ? error.name : undefined;
+    if (errorName?.includes('WorkflowError') && (!isCMAMessage(cumulusMessage))) {
       return {
-        ...cumulusMessage, payload: null, exception: err.name,
+        ...cumulusMessage, payload: null, exception: errorName,
       } as CumulusMessageWithAssignedPayload;
     }
 
