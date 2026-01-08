@@ -5,7 +5,7 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-const request = require('request');
+const https = require('https');
 const extract = require('extract-zip');
 
 /**
@@ -13,31 +13,47 @@ const extract = require('extract-zip');
  *
  * @param {string} fileUrl - URL file location
  * @param {string} localFilename - Where to store file locally
+ * @param {number} redirectCount - Number of redirects followed (for internal use)
  * @returns {Promise} - resolves `undefined` when download is completed
  */
-function downloadZipfile(fileUrl, localFilename) {
+function downloadZipfile(fileUrl, localFilename, redirectCount = 0) {
   const file = fs.createWriteStream(localFilename);
-  const options = {
-    uri: fileUrl,
-    headers: {
-      Accept: 'application/octet-stream',
-      'Content-Type': 'application/zip',
-      'Content-Transfer-Encoding': 'binary',
-    },
-  };
+  const maxRedirects = 10;
 
   return new Promise((resolve, reject) => {
-    request(options, (err, response) => {
-      if (err) reject(err);
-      if (response.statusCode !== 200) reject(new Error(`${response.statusMessage}: ${fileUrl}`));
-    })
-      .pipe(file);
+    https.get(fileUrl, {
+      headers: {
+        Accept: 'application/octet-stream',
+        'Content-Type': 'application/zip',
+        'Content-Transfer-Encoding': 'binary',
+      },
+    }, (response) => {
+      // Handle redirects (301, 302, 303, 307, 308)
+      if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+        file.close();
+        if (redirectCount >= maxRedirects) {
+          reject(new Error(`Too many redirects (${maxRedirects}) for ${fileUrl}`));
+          return;
+        }
+        console.log(`Following redirect to ${response.headers.location}`);
+        resolve(downloadZipfile(response.headers.location, localFilename, redirectCount + 1));
+        return;
+      }
 
-    file.on('finish', () => {
-      console.log(`Completed download of ${fileUrl} to ${localFilename}`);
-      resolve();
-    })
-      .on('error', reject);
+      if (response.statusCode !== 200) {
+        file.close();
+        reject(new Error(`${response.statusMessage}: ${fileUrl}`));
+        return;
+      }
+
+      response.pipe(file);
+
+      file.on('finish', () => {
+        console.log(`Completed download of ${fileUrl} to ${localFilename}`);
+        resolve();
+      })
+        .on('error', reject);
+    }).on('error', reject);
   });
 }
 
@@ -66,25 +82,26 @@ function extractZipFile(filename, dst) {
  * @param {string} gitPath - path to the cumulus message adapter repo
  * @returns {Promise.<string>} Promise resolution is string of latest github release, e.g. 'v0.0.1'
  */
-function fetchLatestMessageAdapterRelease(gitPath) {
-  const options = {
-    url: `https://api.github.com/repos/${gitPath}/releases/latest`,
-    headers: {
-      Accept: 'application/json',
-      'User-Agent': '@cumulus/deployment', // Required by Github API
-    },
+async function fetchLatestMessageAdapterRelease(gitPath) {
+  const headers = {
+    Accept: 'application/json',
+    'User-Agent': '@cumulus/deployment', // Required by Github API
   };
 
   if (process.env.GITHUB_TOKEN) {
-    options.headers.Authorization = `token ${process.env.GITHUB_TOKEN}`;
+    headers.Authorization = `token ${process.env.GITHUB_TOKEN}`;
   }
 
-  return new Promise((resolve, reject) => {
-    request(options, (err, response, body) => {
-      if (err) reject(err);
-      resolve(JSON.parse(body).tag_name);
-    });
+  const response = await fetch(`https://api.github.com/repos/${gitPath}/releases/latest`, {
+    headers,
   });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch latest release: ${response.statusText}`);
+  }
+
+  const body = await response.json();
+  return body.tag_name;
 }
 
 /**
