@@ -8,6 +8,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+## [v2.4.0] 2026-01-08
+
 - **CUMULUS-4446**
   - Updated node to v22.21.1
   - Updated typescript to 5.0
