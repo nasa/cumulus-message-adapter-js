@@ -8,6 +8,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+## [v2.4.0] 2026-01-08
+
 - **CUMULUS-4446**
   - Updated node to v22.21.1
   - Updated typescript to 5.0
@@ -198,7 +200,9 @@ Initial release
 
 
 [Unreleased]:
-https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v2.3.0...HEAD
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v2.4.0...HEAD
+[v2.4.0]:
+https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v2.3.0...v2.4.0
 [v2.3.0]:
 https://github.com/nasa/cumulus-cumulus-message-adapter-js/compare/v1.3.0...2.3.0
 [v1.3.0]:
