@@ -52,7 +52,7 @@
     "eslint-plugin-eslint-comments": "^3.0.1",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-jsdoc": "^61.5.0",
-    "eslint-plugin-lodash": "^2.7.0",
+    "eslint-plugin-lodash": "^8.0.0",
     "eslint-plugin-node": "^7.0.1",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-unicorn": "^19.0.1",
