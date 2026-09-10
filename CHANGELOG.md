@@ -8,6 +8,17 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+### Fixed
+
+- **CSD-151**
+  - Fixed issue where logging environment variables were only set when the
+    corresponding value was present in the Cumulus message. Because Lambda
+    reuses execution environments, an optional value absent from the current
+    message retained the value from a previous invocation in the same
+    container, causing `parentArn` and `asyncOperationId` to be logged against
+    the wrong execution. These variables are now set on every invocation and
+    unset when the message does not supply them.
+
 ## [v2.4.0] 2026-01-08
 
 - **CUMULUS-4446**
