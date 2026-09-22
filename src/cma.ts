@@ -106,14 +106,23 @@ export async function invokeCumulusMessageAdapter(): Promise<InvokeCumulusMessag
 }
 
 /**
- * Conditionally set environment variable when targeted value is not undefined.
+ * Set environment variable to targeted value, or unset it when value is
+ * undefined.
+ *
+ * Lambda reuses execution environments, so `process.env` persists between
+ * invocations. A value absent from the current message must be actively
+ * cleared, or the previous invocation's value is attributed to this one.
  *
  * @param {string} VARNAME - environment variable name
- * @param {string | undefined} value - value to set variable to if not undefined
+ * @param {string | undefined} value - value to set, or undefined to unset
  * @returns {undefined} - none
  */
 function safeSetEnv(VARNAME: string, value?: string): void {
-  if (value !== undefined) process.env[VARNAME] = value;
+  if (value === undefined) {
+    delete process.env[VARNAME];
+    return;
+  }
+  process.env[VARNAME] = value;
 }
 
 /**
@@ -124,7 +133,7 @@ function safeSetEnv(VARNAME: string, value?: string): void {
  * @param {Object} context - lambda context object.
  * @returns {undefined} - no return values
  */
-function setCumulusEnvironment(
+export function setCumulusEnvironment(
   cumulusMessage: CumulusMessageWithAssignedPayload,
   context: Context
 ): void {
