@@ -10,6 +10,10 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Preserve literal `<EOC>` text in JSON values and keys when reading CMA stream responses.
+- Reject malformed JSON and reads after an adapter closes during the task,
+  preserving task error handling and adapter diagnostics.
+
 - **CSD-151**
   - Fixed issue where logging environment variables were only set when the
     corresponding value was present in the Cumulus message. Because Lambda

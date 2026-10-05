@@ -151,30 +151,49 @@ export function setCumulusEnvironment(
  *
  * @param {Object} readLine - configured readline object
  * @param {*} errorObj - cma errorObject with stderr string buffer
+ * @param {Object} outputState - tracks whether the readline stream has already closed
+ * @param {boolean} outputState.closed - whether the output stream has closed
  * @returns {Promise<Object>} - Promise that resolves to a parsed JSON object
  *                              from the CMA output
  */
 async function getCmaOutput(
   readLine: readline.ReadLine,
-  errorObj: CumulusMessageAdapterError
+  errorObj: CumulusMessageAdapterError,
+  outputState: { closed: boolean }
 ): Promise<CumulusMessageWithAssignedPayload | LoadNestedEventInput | CumulusRemoteMessage> {
   return new Promise((resolve, reject) => {
+    if (outputState.closed) {
+      reject(new CumulusMessageAdapterExecutionError(errorObj.stderrBuffer));
+      return;
+    }
+    /**
+     * Reject a pending read when the output stream closes.
+     *
+     * @returns {undefined} - none
+     */
+    const onClose = () => {
+      reject(new CumulusMessageAdapterExecutionError(errorObj.stderrBuffer));
+    };
     let buffer = '';
-    readLine.resume();
     readLine.on('line', (input: string) => {
       if (input.endsWith('<EOC>')) {
         readLine.pause();
         readLine.removeAllListeners('line');
-        const endInput = input.replace('<EOC>', '');
+        readLine.removeListener('close', onClose);
+        // Strip only the framing suffix, not a marker inside the JSON value.
+        const endInput = input.slice(0, -'<EOC>'.length);
         buffer += endInput;
-        resolve(JSON.parse(buffer));
+        try {
+          resolve(JSON.parse(buffer));
+        } catch (error) {
+          reject(error);
+        }
       } else {
         buffer += input;
       }
     });
-    readLine.on('close', () => {
-      reject(new CumulusMessageAdapterExecutionError(errorObj.stderrBuffer));
-    });
+    readLine.once('close', onClose);
+    readLine.resume();
   });
 }
 
@@ -199,6 +218,10 @@ export async function runCumulusTask(
   const cmaStdin = cmaProcess.stdin;
   const rl = readline.createInterface({
     input: cmaProcess.stdout,
+  });
+  const outputState = { closed: false };
+  rl.once('close', () => {
+    outputState.closed = true;
   });
 
   let lambdaTimer;
@@ -225,7 +248,7 @@ export async function runCumulusTask(
       schemas,
     }));
     cmaStdin.write('\n<EOC>\n');
-    const loadAndUpdateRemoteEventOutput = await getCmaOutput(rl, errorObj);
+    const loadAndUpdateRemoteEventOutput = await getCmaOutput(rl, errorObj, outputState);
     if (!isCumulusMessageWithAssignedPayload(loadAndUpdateRemoteEventOutput)) {
       throw new Error(`Invalid output typing received from
       loadAndUpdateRemoteEvent ${JSON.stringify(loadAndUpdateRemoteEventOutput)}`);
@@ -238,7 +261,7 @@ export async function runCumulusTask(
       context,
     }));
     cmaStdin.write('\n<EOC>\n');
-    const loadNestedEventOutput = await getCmaOutput(rl, errorObj);
+    const loadNestedEventOutput = await getCmaOutput(rl, errorObj, outputState);
     if (!isLoadNestedEventInput(loadNestedEventOutput)) {
       throw new Error(`Invalid output typing received from
       loadNestedEvent ${JSON.stringify(loadNestedEventOutput)}`);
@@ -257,7 +280,7 @@ export async function runCumulusTask(
       schemas,
     }));
     cmaStdin.write('\n<EOC>\n');
-    const createNextEventOutput = await getCmaOutput(rl, errorObj);
+    const createNextEventOutput = await getCmaOutput(rl, errorObj, outputState);
     cmaStdin.write('<EXIT>\n');
     if (isLoadNestedEventInput(createNextEventOutput)) {
       throw new Error(`Invalid typing received from
