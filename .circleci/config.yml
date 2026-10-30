@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: cimg/node:22.21.1
+      - image: cimg/node:22.23.4
     working_directory: ~/cumulus-message-adapter
     steps:
       - checkout
